@@ -1,0 +1,51 @@
+.tooltip {
+  padding: 5px 10px;
+  font-size: 10pt;
+  border-radius: 5px;
+  position: absolute;
+}
+
+.tooltip::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  transform: rotate(45deg);
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  margin-left: -5px;
+  margin-top: -5px;
+}
+
+.tooltip-transparent {
+  color: #FFFFFF00;
+  background-color: #FFFFFF00;
+  display: block;
+}
+
+.tooltip-transparent::after {
+  background-color: #FFFFFF00;
+  display: block;
+}
+
+.tooltip-show {
+  color: #FFFFFFFF;
+  background-color: #202020FF;
+  display: block;
+}
+
+.tooltip-show::after {
+  background-color: #202020FF;
+  display: block;
+}
+
+.tooltip-hidden {
+  color: #FFFFFF00;
+  background-color: #FFFFFF00;
+  display: none;
+}
+
+.tooltip-hidden::after {
+  background-color: #FFFFFF00;
+  display: none;
+}
