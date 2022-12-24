@@ -160,7 +160,7 @@ class MsgStats {
     // Remove leading and trailing symbols/punctuations
     tokens = tokens.map(e => {
       let s = e.split(/\W+/);
-      if (s.length == 2) {
+      if (s.length === 2) {
         // Leading symbols
         if (s[0] === "" && s[1] !== "") {
           return s[1];

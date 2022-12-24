@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import Parser from "../../../core/msg-analyzer/Parser";
-import StopWords from "../../../core/msg-analyzer/StopWords";
+import Parser from "../Parser";
+import StopWords from "../StopWords";
 
 export default function useStopWords(swFileList: FileList | null): [StopWords | null, Dispatch<SetStateAction<StopWords | null>>, string] {
   const [stopWords, setStopWords] = useState<StopWords | null>(null);

@@ -1,10 +1,7 @@
-import { Type } from 'class-transformer';
-
 import MsgEntry from "./MsgEntry";
 import MsgStats from "./MsgStats";
 
 class MsgData {
-  @Type(() => MsgEntry)
   private entryList: MsgEntry[];
 
   private userList: string[];
@@ -49,7 +46,7 @@ class MsgData {
     let date: string = "";
     for (let i = 0; i < this.entryList.length; i++) {
       date = this.entryList[i].getDate();
-      if (i == 0) {
+      if (i === 0) {
         res.push(date);
       }
       else {

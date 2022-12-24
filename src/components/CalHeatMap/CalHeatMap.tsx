@@ -1,6 +1,6 @@
 //@ts-nocheck
 import * as d3 from "d3";
-import styles from "./CalHeatMap.css";
+import "./CalHeatMap.css";
 
 import { useEffect, useRef } from "react";
 
@@ -18,7 +18,7 @@ const CalHeatMap = ({ data }) => {
         "values": users.map(user => data[user][date])
       })
       );
-    
+
     const dataLabel = (d) => {
       return `<b>${d3.utcFormat("%B %-d, %Y")(d.date)}: ${d.values.reduce((a, b) => a + b)}</b>
       <br>
@@ -34,7 +34,8 @@ const CalHeatMap = ({ data }) => {
         x: d => d.date,
         y: d => d.values.reduce((a, b) => a + b),
         dataLabel: dataLabel,
-        width: 950,
+        width: 1120,
+        cellSize: 20,
         weekday: "sunday",
         colors: d3.interpolateRgb("#F0F0F0", "#F07080")
       }
@@ -44,7 +45,7 @@ const CalHeatMap = ({ data }) => {
   return (
     <div>
       <svg ref={calRef}></svg>
-      <div ref={ttRef} className={`${styles["tooltip"]} ${styles["tooltip-hidden"]}`}></div>
+      <div ref={ttRef} className="tooltip tooltip-hidden"></div>
     </div>
   );
 };
@@ -95,13 +96,13 @@ function Calendar(data: any[], calRef, ttRef, {
 
   const years = d3.groups(I, i => X[i].getUTCFullYear());
 
-  function pathMonth(t) {
-    const d = Math.max(0, Math.min(weekDays, countDay(t.getUTCDay())));
-    const w = timeWeek.count(d3.utcYear(t), t);
-    return `${d === 0 ? `M${w * cellSize},0`
-      : d === weekDays ? `M${(w + 1) * cellSize},0`
-        : `M${(w + 1) * cellSize},0V${d * cellSize}H${w * cellSize}`}V${weekDays * cellSize}`;
-  }
+  // function pathMonth(t) {
+  //   const d = Math.max(0, Math.min(weekDays, countDay(t.getUTCDay())));
+  //   const w = timeWeek.count(d3.utcYear(t), t);
+  //   return `${d === 0 ? `M${w * cellSize},0`
+  //     : d === weekDays ? `M${(w + 1) * cellSize},0`
+  //       : `M${(w + 1) * cellSize},0V${d * cellSize}H${w * cellSize}`}V${weekDays * cellSize}`;
+  // }
 
   const svg = d3.select(calRef)
     .attr("width", width)
@@ -109,7 +110,7 @@ function Calendar(data: any[], calRef, ttRef, {
     .attr("viewBox", [0, 0, width, height * years.length])
     .attr("style", "max-width: 100%; height: auto; height: intrinsic;")
     .attr("font-family", "sans-serif")
-    .attr("font-size", 10);
+    .attr("font-size", 16);
 
   const year = svg.selectAll("g")
     .data(years)
@@ -172,16 +173,16 @@ function Calendar(data: any[], calRef, ttRef, {
 
 const showTooltip = (tooltip, rectPos, text) => {
   tooltip.innerHTML = text;
-  tooltip.className = `${styles["tooltip"]} ${styles["tooltip-transparent"]}`;
+  tooltip.className = "tooltip tooltip-transparent";
   const ttPos = tooltip.getBoundingClientRect();
-  tooltip.style.left = `${Math.round(((rectPos.left + rectPos.right) / 2) - ((ttPos.right - ttPos.left) / 2))}px`;
+  tooltip.style.left = `${((rectPos.left + rectPos.right) / 2) - ((ttPos.right - ttPos.left) / 2)}px`;
   tooltip.style.top = `${rectPos.top - (ttPos.bottom - ttPos.top) - 10 + window.scrollY}px`;
-  tooltip.className = `${styles["tooltip"]} ${styles["tooltip-show"]}`;
+  tooltip.className = "tooltip tooltip-show";
 };
 
 const hideTooltip = (tooltip) => {
   tooltip.innerHTML = "";
-  tooltip.className = `${styles["tooltip"]} ${styles["tooltip-hidden"]}`;
+  tooltip.className = "tooltip tooltip-hidden";
 };
 
 export default CalHeatMap;
