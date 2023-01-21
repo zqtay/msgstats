@@ -1,6 +1,6 @@
 //@ts-nocheck
 import * as d3 from "d3";
-import "./CalHeatMap.css";
+import styles from "./CalHeatMap.module.scss";
 
 import { useEffect, useRef } from "react";
 
@@ -45,7 +45,7 @@ const CalHeatMap = ({ data }) => {
   return (
     <div>
       <svg ref={calRef}></svg>
-      <div ref={ttRef} className="tooltip tooltip-hidden"></div>
+      <div ref={ttRef} className={`${styles["tooltip"]} ${styles["tooltip-hidden"]}`}></div>
     </div>
   );
 };
@@ -173,16 +173,16 @@ function Calendar(data: any[], calRef, ttRef, {
 
 const showTooltip = (tooltip, rectPos, text) => {
   tooltip.innerHTML = text;
-  tooltip.className = "tooltip tooltip-transparent";
+  tooltip.className = `${styles["tooltip"]} ${styles["tooltip-transparent"]}`;
   const ttPos = tooltip.getBoundingClientRect();
   tooltip.style.left = `${((rectPos.left + rectPos.right) / 2) - ((ttPos.right - ttPos.left) / 2)}px`;
   tooltip.style.top = `${rectPos.top - (ttPos.bottom - ttPos.top) - 10 + window.scrollY}px`;
-  tooltip.className = "tooltip tooltip-show";
+  tooltip.className = `${styles["tooltip"]} ${styles["tooltip-show"]}`;
 };
 
 const hideTooltip = (tooltip) => {
   tooltip.innerHTML = "";
-  tooltip.className = "tooltip tooltip-hidden";
+  tooltip.className = `${styles["tooltip"]} ${styles["tooltip-hidden"]}`;
 };
 
 export default CalHeatMap;
