@@ -4,20 +4,28 @@ import styles from "./CalHeatMap.module.scss";
 
 import { useEffect, useRef } from "react";
 
-const CalHeatMap = ({ data }) => {
+const CalHeatMap = (
+  props: {
+    data: { [key: string]: { [key: string]: number; }; },
+    dateStart: string,
+    dateEnd: string;
+  }) => {
   const calRef = useRef(null);
   const ttRef = useRef(null);
 
   useEffect(() => {
-    //{"user":{"2020-01-01": 3}} => [{"date":"2020-01-01", "values": [3]}]
-    let users = Object.keys(data);
-    let formattedData = Object.keys(data[users[0]])
-      .map(date =>
-      ({
+    //{"user":{"2020-01-01": 3}} => [{"date": new Date("2020-01-01"), "values": [3]}]
+    let users = Object.keys(props.data);
+    let formattedData = Object.keys(props.data[users[0]])
+      .map(date => ({
         "date": new Date(date),
-        "values": users.map(user => data[user][date])
-      })
-      );
+        "values": users.map(user => props.data[user][date])
+      }));
+    if (props.dateStart && props.dateEnd) {
+      const oDateStart = new Date(props.dateStart);
+      const oDateEnd = new Date(props.dateEnd);
+      formattedData = formattedData.filter(d => (d.date >= oDateStart && d.date <= oDateEnd));
+    }
 
     const dataLabel = (d) => {
       return `<b>${d3.utcFormat("%B %-d, %Y")(d.date)}: ${d.values.reduce((a, b) => a + b)}</b>
@@ -40,7 +48,7 @@ const CalHeatMap = ({ data }) => {
         colors: d3.interpolateRgb("#F0F0F0", "#F07080")
       }
     );
-  }, [data]);
+  }, [props]);
 
   return (
     <div>
