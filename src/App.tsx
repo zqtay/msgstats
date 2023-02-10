@@ -1,12 +1,10 @@
 import './App.scss';
-import InputPanel from "./components/InputPanel/InputPanel";
+import Main from "./components/Main/Main";
 
 function App() {
   return (
     <>
-      <main>
-        <InputPanel />
-      </main>
+      <Main />
     </>
   );
 }

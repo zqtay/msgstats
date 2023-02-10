@@ -28,6 +28,10 @@ class MsgEntry {
     return this.date;
   }
 
+  public getDateObject(): Date {
+    return new Date(this.date);
+  }
+
   public getTime(): string {
     return this.time;
   }

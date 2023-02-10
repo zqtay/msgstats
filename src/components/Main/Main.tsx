@@ -6,8 +6,9 @@ import ProgressBar from "../UI/ProgressBar/ProgressBar";
 import useMsgData from '../../feature/message-stats/hooks/useMsgData';
 import useStopWords from '../../feature/message-stats/hooks/useStopWords';
 import CalHeatMap from "../CalHeatMap/CalHeatMap";
+import DonutChart from "../DonutChart/DonutChart";
 
-const InputPanel = () => {
+const Main = () => {
   const [msgFileList, setMsgFileList] = useState(null);
   const [swFileList, setSwFileList] = useState(null);
   const [statusText, setStatusText] = useState("");
@@ -15,9 +16,18 @@ const InputPanel = () => {
   let swFileDirRef: any = useRef(null);
 
   const [msgCount, setMsgCount] = useState<{ [key: string]: { [key: string]: number; }; } | null>(null);
+  const [msgStats, setMsgStats] = useState<{ [key: string]: number; } | null>(null);
 
   const [msgData, , msgDataStatus] = useMsgData(msgFileList);
   const [stopWords, , stopWordsStatus] = useStopWords(swFileList);
+
+  useEffect(() => {
+    if (msgDataStatus === "success") {
+      getWordFreq();
+      getMsgCount();
+      getMsgStats();
+    }
+  }, [msgDataStatus]);
 
   const parseFiles = () => {
     if (msgFileDirRef !== null) {
@@ -30,7 +40,7 @@ const InputPanel = () => {
 
   const getWordFreq = () => {
     if (msgData !== null) {
-      let wordFreq = msgData.stats.getMostUsedWords(msgData, 1000, stopWords?.check.bind(stopWords));
+      let wordFreq = msgData.stats.getMostUsedWords(1000, stopWords?.check.bind(stopWords));
       setStatusText(JSON.stringify(wordFreq).slice(0, 1000));
       console.log(wordFreq);
     }
@@ -38,7 +48,7 @@ const InputPanel = () => {
 
   const getMsgCount = () => {
     if (msgData !== null) {
-      let msgCount1 = msgData.stats.getDailyMsgCount(msgData);
+      let msgCount1 = msgData.stats.getDailyMsgCount();
       setStatusText(JSON.stringify(msgCount1).slice(0, 1000));
       setMsgCount(msgCount1);
       console.log(msgCount1);
@@ -59,33 +69,34 @@ const InputPanel = () => {
 
   const getMsgStats = () => {
     if (msgData !== null) {
-      let stats = msgData.stats.getMsgStats(msgData);
+      let stats = msgData.stats.getMsgStats();
       setStatusText(JSON.stringify(stats).slice(0, 1000));
-      console.log(stats);
+      let totMsgCount: { [key: string]: number; } = {};
+      Object.keys(stats).forEach(name => totMsgCount[name] = stats[name]["totMsgCount"]);
+      setMsgStats(totMsgCount);
     }
   };
 
   return (
-    <Container>
+    <main>
+      <Container>
+        {(msgDataStatus.split("_")[0] === "parse" || msgDataStatus === "success") &&
+          <ProgressBar primary value={getParseProgress()} max={msgFileDirRef.current.files.length} />
+        }
+        <h2>MsgData status: {msgDataStatus}</h2>
+        <h2>StopWords status: {stopWordsStatus}</h2>
+        <p>{statusText}</p>
 
-      {(msgDataStatus.split("_")[0] === "parse" || msgDataStatus === "success") &&
-        <ProgressBar primary value={getParseProgress()} max={msgFileDirRef.current.files.length} />
-      }
-      <h2>MsgData status: {msgDataStatus}</h2>
-      <h2>StopWords status: {stopWordsStatus}</h2>
-      <p>{statusText}</p>
-
-      <input id="msgFileSelect" accept=".html" multiple type="file" ref={msgFileDirRef} />
-      <input id="swFileSelect" accept=".txt" multiple type="file" ref={swFileDirRef} />
-      <Button primary onClick={parseFiles}>
-        Start
-      </Button>
-      <button onClick={() => getWordFreq()}>WORD FREQ</button>
-      <button onClick={() => getMsgCount()}>MSG COUNT</button>
-      <button onClick={() => getMsgStats()}>STATS</button>
-      {msgCount && <CalHeatMap data={msgCount}></CalHeatMap>}
-    </Container>
+        <input id="msgFileSelect" accept=".html" multiple type="file" ref={msgFileDirRef} />
+        <input id="swFileSelect" accept=".txt" multiple type="file" ref={swFileDirRef} />
+        <Button primary onClick={parseFiles}>
+          Start
+        </Button>
+        {msgCount && <CalHeatMap data={msgCount} dateStart={"2018-01-20"} dateEnd={"2019-01-01"}></CalHeatMap>}
+        {msgStats && <DonutChart data={msgStats}></DonutChart>}
+      </Container>
+    </main>
   );
 };
 
-export default InputPanel;
+export default Main;

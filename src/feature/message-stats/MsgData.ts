@@ -12,7 +12,7 @@ class MsgData {
     this.entryList = [];
     this.userList = [];
     this.dateList = [];
-    this.stats = new MsgStats();
+    this.stats = new MsgStats(this);
   }
 
   public async init(csvText: string): Promise<void> {
@@ -20,7 +20,7 @@ class MsgData {
       this.entryList = this.initEntryList(csvText);
       this.userList = this.initUserList();
       this.dateList = this.initDateList();
-      this.stats.init(this);
+      this.stats.init();
     }
     catch (e) {
       console.error(e);

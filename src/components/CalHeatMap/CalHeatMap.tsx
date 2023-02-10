@@ -7,8 +7,8 @@ import { useEffect, useRef } from "react";
 const CalHeatMap = (
   props: {
     data: { [key: string]: { [key: string]: number; }; },
-    dateStart: string,
-    dateEnd: string;
+    dateStart?: string,
+    dateEnd?: string;
   }) => {
   const calRef = useRef(null);
   const ttRef = useRef(null);
