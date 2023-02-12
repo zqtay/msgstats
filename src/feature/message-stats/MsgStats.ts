@@ -57,9 +57,9 @@ class MsgStats {
     this.dateEnd = new Date(dateList[dateList.length - 1]);
   }
 
-  public setDateRange (dateStart: string, dateEnd: string) {
-    this.dateStart = new Date(dateStart);
-    this.dateEnd = new Date(dateEnd);
+  public setDateRange (dateStart?: string, dateEnd?: string) {
+    if (dateStart) this.dateStart = new Date(dateStart);
+    if (dateEnd) this.dateEnd = new Date(dateEnd);
     this.entryList = this.msgData.getEntryList().filter(entry => {
       const entryDate = entry.getDateObject();
       return (entryDate >= this.dateStart && entryDate >= this.dateEnd);
