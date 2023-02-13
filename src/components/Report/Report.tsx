@@ -5,10 +5,14 @@ import StopWords from "../../feature/message-stats/StopWords";
 
 import { useEffect, useState } from 'react';
 
-const Report = (props: {show: boolean, msgData: MsgData | null, stopWords: StopWords | null}) => {
+type Stats = { [key: string]: { [key: string]: number; }; };
+type WordFreq = { [key: string]: { [key: string]: number; }[]; };
 
-  const [msgCount, setMsgCount] = useState<{ [key: string]: { [key: string]: number; }; } | null>(null);
-  const [msgStats, setMsgStats] = useState<{ [key: string]: { [key: string]: number; }; } | null>(null);
+const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: StopWords | null; }) => {
+
+  const [msgCount, setMsgCount] = useState<Stats | null>(null);
+  const [msgStats, setMsgStats] = useState<Stats | null>(null);
+  const [wordFreq, setWordFreq] = useState<WordFreq | null>(null);
   const [dateRange, setDateRange] = useState({});
 
   useEffect(() => {
@@ -17,11 +21,12 @@ const Report = (props: {show: boolean, msgData: MsgData | null, stopWords: StopW
       getMsgCount();
       getMsgStats();
     }
-  }, [props.show, props.msgData, props.stopWords])
+  }, [props.show, props.msgData, props.stopWords]);
 
   const getWordFreq = () => {
     if (props.msgData) {
-      let wordFreq = props.msgData.stats.getMostUsedWords(1000, props.stopWords?.check.bind(props.stopWords));
+      let wordFreq1 = props.msgData.stats.getMostUsedWords(20, props.stopWords?.check.bind(props.stopWords));
+      setWordFreq(wordFreq1);
     }
   };
 
@@ -39,13 +44,13 @@ const Report = (props: {show: boolean, msgData: MsgData | null, stopWords: StopW
       let totCharCount: { [key: string]: number; } = {};
       Object.keys(stats).forEach(name => totMsgCount[name] = stats[name]["totMsgCount"]);
       Object.keys(stats).forEach(name => totCharCount[name] = stats[name]["totCharCount"]);
-      setMsgStats(prev => ({...prev, totMsgCount: totMsgCount}));
-      setMsgStats(prev => ({...prev, avgCharCountPerMsg: totCharCount}));
+      setMsgStats(prev => ({ ...prev, totMsgCount: totMsgCount }));
+      setMsgStats(prev => ({ ...prev, totCharCount: totCharCount }));
     }
   };
 
   const handleDateChange = (e: any) => {
-    if (props.msgData) { 
+    if (props.msgData) {
       props.msgData.stats.setDateRange(e.target.value);
       getWordFreq();
       getMsgCount();
@@ -55,15 +60,36 @@ const Report = (props: {show: boolean, msgData: MsgData | null, stopWords: StopW
 
   return (
     <>
-    {props.show &&
-      <div>
-        <input type="date" onChange={handleDateChange}></input>
-        {msgCount && <CalHeatMap data={msgCount}></CalHeatMap>}
-        {msgStats && <DonutChart data={msgStats.totMsgCount}></DonutChart>}
-        {msgStats && <DonutChart data={msgStats.avgCharCountPerMsg}></DonutChart>}
-      </div>
-    }
+      {props.show &&
+        <div>
+          <input type="date" onChange={handleDateChange}></input>
+          {msgCount && <CalHeatMap data={msgCount}></CalHeatMap>}
+          {msgStats && <DonutChart data={msgStats.totMsgCount}></DonutChart>}
+          {msgStats && <DonutChart data={msgStats.totCharCount}></DonutChart>}
+          {wordFreq && <WordFreqTable wordFreq={wordFreq} />}
+        </div>
+      }
     </>
+  );
+};
+
+const WordFreqTable = (props: { wordFreq: WordFreq; }) => {
+  let users = Object.keys(props.wordFreq);
+  const Table = (props: { user: string, words: { [key: string]: number; }[]; }) => {
+    return (
+      <table>
+        <th>{props.user}</th>
+        {props.words
+          .map(e => (<tr><td>{Object.keys(e)[0]}</td><td>{Object.values(e)[0]}</td></tr>))
+        }
+      </table>
+    );
+  };
+
+  return (
+    <div>
+      {users.map(user => <Table user={user} words={props.wordFreq[user]} />)}
+    </div>
   );
 };
 
