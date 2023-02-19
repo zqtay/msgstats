@@ -1,18 +1,19 @@
-import CalHeatMap from "../CalHeatMap/CalHeatMap";
-import DonutChart from "../DonutChart/DonutChart";
+import CalHeatMap from "../Charts/CalHeatMap/CalHeatMap";
+import DonutChart from "../Charts/DonutChart/DonutChart";
 import MsgData from "../../feature/message-stats/MsgData";
 import StopWords from "../../feature/message-stats/StopWords";
-
+import styles from "./Report.module.scss";
 import { useEffect, useState } from 'react';
 
-type Stats = { [key: string]: { [key: string]: number; }; };
-type WordFreq = { [key: string]: { [key: string]: number; }[]; };
+type SimpleData = { [key: string]: number; };
+type MsgStatsData = { [key: string]: { [key: string]: number; }; };
+type WordFreqData = { [key: string]: { [key: string]: number; }[]; };
 
 const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: StopWords | null; }) => {
 
-  const [msgCount, setMsgCount] = useState<Stats | null>(null);
-  const [msgStats, setMsgStats] = useState<Stats | null>(null);
-  const [wordFreq, setWordFreq] = useState<WordFreq | null>(null);
+  const [msgCount, setMsgCount] = useState<MsgStatsData | null>(null);
+  const [msgStats, setMsgStats] = useState<MsgStatsData | null>(null);
+  const [wordFreq, setWordFreq] = useState<WordFreqData | null>(null);
   const [dateRange, setDateRange] = useState({});
 
   useEffect(() => {
@@ -40,12 +41,15 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
   const getMsgStats = () => {
     if (props.msgData) {
       let stats = props.msgData.stats.getMsgStats();
-      let totMsgCount: { [key: string]: number; } = {};
-      let totCharCount: { [key: string]: number; } = {};
+      let totMsgCount: SimpleData = {};
+      let totCharCount: SimpleData = {};
+      let avgCharCountPerMsg: SimpleData = {};
       Object.keys(stats).forEach(name => totMsgCount[name] = stats[name]["totMsgCount"]);
       Object.keys(stats).forEach(name => totCharCount[name] = stats[name]["totCharCount"]);
+      Object.keys(stats).forEach(name => avgCharCountPerMsg[name] = stats[name]["avgCharCountPerMsg"]);
       setMsgStats(prev => ({ ...prev, totMsgCount: totMsgCount }));
       setMsgStats(prev => ({ ...prev, totCharCount: totCharCount }));
+      setMsgStats(prev => ({ ...prev, avgCharCountPerMsg: avgCharCountPerMsg }));
     }
   };
 
@@ -64,8 +68,15 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
         <div>
           <input type="date" onChange={handleDateChange}></input>
           {msgCount && <CalHeatMap data={msgCount}></CalHeatMap>}
-          {msgStats && <DonutChart data={msgStats.totMsgCount}></DonutChart>}
-          {msgStats && <DonutChart data={msgStats.totCharCount}></DonutChart>}
+          <div className={styles["msg-stats-charts"]}>
+            {msgStats &&
+              <>
+                <MsgStatsChart title="Total Message Count" data={msgStats.totMsgCount} />
+                <MsgStatsChart title="Total Character Count" data={msgStats.totCharCount} />
+                <MsgStatsChart title="Average Character Count Per Message" data={msgStats.avgCharCountPerMsg} />
+              </>
+            }
+          </div>
           {wordFreq && <WordFreqTable wordFreq={wordFreq} />}
         </div>
       }
@@ -73,22 +84,40 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
   );
 };
 
-const WordFreqTable = (props: { wordFreq: WordFreq; }) => {
+const WordFreqTable = (props: { wordFreq: WordFreqData; }) => {
   let users = Object.keys(props.wordFreq);
-  const Table = (props: { user: string, words: { [key: string]: number; }[]; }) => {
+  const Table = (props: { user: string, words: SimpleData[]; }) => {
     return (
-      <table>
-        <th>{props.user}</th>
-        {props.words
-          .map(e => (<tr><td>{Object.keys(e)[0]}</td><td>{Object.values(e)[0]}</td></tr>))
-        }
-      </table>
+      <div>
+        <h5>{props.user}</h5>
+        <table>
+          <tbody>
+            {props.words
+              .map((e, i) => (
+                <tr key={i}>
+                  <td>{Object.keys(e)[0]}</td>
+                  <td>{Object.values(e)[0]}</td>
+                </tr>)
+              )
+            }
+          </tbody>
+        </table>
+      </div>
     );
   };
 
   return (
     <div>
-      {users.map(user => <Table user={user} words={props.wordFreq[user]} />)}
+      {users.map(user => <Table key={user} user={user} words={props.wordFreq[user]} />)}
+    </div>
+  );
+};
+
+const MsgStatsChart = (props: { title: string, data: SimpleData; }) => {
+  return (
+    <div className={styles["msg-stats-chart-container"]}>
+      <h3>{props.title}</h3>
+      <DonutChart data={props.data}></DonutChart>
     </div>
   );
 };

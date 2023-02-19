@@ -1,17 +1,17 @@
 //@ts-nocheck
-import * as d3 from "d3";
 import styles from "./CalHeatMap.module.scss";
-
-import { useEffect, useRef } from "react";
+import Tooltip from "../Tooltip/Tooltip";
+import * as d3 from "d3";
+import { useEffect, useRef, useState } from "react";
 
 const CalHeatMap = (
   props: {
     data: { [key: string]: { [key: string]: number; }; },
     dateStart?: string,
-    dateEnd?: string;
+    dateEnd?: string,
   }) => {
   const calRef = useRef(null);
-  const ttRef = useRef(null);
+  const [tooltipState, setTooltipState] = useState({ show: false });
 
   useEffect(() => {
     //{"user":{"2020-01-01": 3}} => [{"date": new Date("2020-01-01"), "values": [3]}]
@@ -37,7 +37,7 @@ const CalHeatMap = (
     calRef.current.innerHTML = "";
     Calendar(formattedData,
       calRef.current,
-      ttRef.current,
+      setTooltipState,
       {
         x: d => d.date,
         y: d => d.values.reduce((a, b) => a + b),
@@ -51,9 +51,9 @@ const CalHeatMap = (
   }, [props]);
 
   return (
-    <div>
+    <div className={styles["chart-calHeatMap"]}>
       <svg ref={calRef}></svg>
-      <div ref={ttRef} className={`${styles["tooltip"]} ${styles["tooltip-hidden"]}`}></div>
+      <Tooltip show={tooltipState.show} rectPos={tooltipState.rectPos} text={tooltipState.text} />
     </div>
   );
 };
@@ -62,7 +62,7 @@ const CalHeatMap = (
 // Copyright 2021 Observable, Inc.
 // Released under the ISC license.
 // https://observablehq.com/@d3/calendar-view
-function Calendar(data: any[], calRef, ttRef, {
+function Calendar(data: any[], calRef, setTooltipState, {
   x = ([x]) => x, // given d in data, returns the (temporal) x-value
   y = ([, y]) => y, // given d in data, returns the (quantitative) y-value
   dataLabel, // given d in data, returns the title text
@@ -86,7 +86,7 @@ function Calendar(data: any[], calRef, ttRef, {
 
   // Compute a color scale. This assumes a diverging color scheme where the pivot
   // is zero, and we want symmetric difference around zero.
-  const max = d3.quantile(Y, 0.9975, Math.abs);
+  const max = d3.quantile(Y, 1, Math.abs);
   const color = d3.scaleSequential([0, +max], colors).unknown("none");
 
   // Construct formats.
@@ -153,17 +153,18 @@ function Calendar(data: any[], calRef, ttRef, {
     .attr("x", i => timeWeek.count(d3.utcYear(X[i]), X[i]) * cellSize + 0.5)
     .attr("y", i => countDay(X[i].getUTCDay()) * cellSize + 0.5)
     .attr("fill", i => color(Y[i]))
+    .style("cursor", "pointer")
     .on("mouseover", function (e, d) {
       d3.select(this)
         .attr('stroke-width', "2px")
         .attr("stroke", "#202020");
-      showTooltip(ttRef, this.getBoundingClientRect(), dataLabel(d));
+      setTooltipState({ show: true, rectPos: this.getBoundingClientRect(), text: dataLabel(d) });
     })
     .on("mouseout", function () {
       d3.select(this)
         .attr('stroke-width', "0.1px")
         .attr("stroke", "#FFFFFF");
-      hideTooltip(ttRef);
+      setTooltipState(prev => ({ ...prev, show: false }));
     });
 
   const month = year.append("g")
@@ -178,19 +179,5 @@ function Calendar(data: any[], calRef, ttRef, {
 
   return Object.assign(svg.node(), { scales: { color } });
 }
-
-const showTooltip = (tooltip, rectPos, text) => {
-  tooltip.innerHTML = text;
-  tooltip.className = `${styles["tooltip"]} ${styles["tooltip-transparent"]}`;
-  const ttPos = tooltip.getBoundingClientRect();
-  tooltip.style.left = `${((rectPos.left + rectPos.right) / 2) - ((ttPos.right - ttPos.left) / 2)}px`;
-  tooltip.style.top = `${rectPos.top - (ttPos.bottom - ttPos.top) - 10 + window.scrollY}px`;
-  tooltip.className = `${styles["tooltip"]} ${styles["tooltip-show"]}`;
-};
-
-const hideTooltip = (tooltip) => {
-  tooltip.innerHTML = "";
-  tooltip.className = `${styles["tooltip"]} ${styles["tooltip-hidden"]}`;
-};
 
 export default CalHeatMap;

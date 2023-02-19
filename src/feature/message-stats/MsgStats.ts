@@ -62,7 +62,7 @@ class MsgStats {
     if (dateEnd) this.dateEnd = new Date(dateEnd);
     this.entryList = this.msgData.getEntryList().filter(entry => {
       const entryDate = entry.getDateObject();
-      return (entryDate >= this.dateStart && entryDate >= this.dateEnd);
+      return (entryDate >= this.dateStart && entryDate <= this.dateEnd);
     })
   }
 
