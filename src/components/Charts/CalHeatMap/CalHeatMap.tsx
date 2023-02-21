@@ -116,7 +116,6 @@ function Calendar(data: any[], calRef, setTooltipState, {
     .attr("width", width)
     .attr("height", height * years.length)
     .attr("viewBox", [0, 0, width, height * years.length])
-    .attr("style", "max-width: 100%; height: auto; height: intrinsic;")
     .attr("font-family", "sans-serif")
     .attr("font-size", 16);
 

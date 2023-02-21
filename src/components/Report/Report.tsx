@@ -65,7 +65,7 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
   return (
     <>
       {props.show &&
-        <div>
+        <section className={styles["report"]}>
           <input type="date" onChange={handleDateChange}></input>
           {msgCount && <CalHeatMap data={msgCount}></CalHeatMap>}
           <div className={styles["msg-stats-charts"]}>
@@ -78,7 +78,7 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
             }
           </div>
           {wordFreq && <WordFreqTable wordFreq={wordFreq} />}
-        </div>
+        </section>
       }
     </>
   );

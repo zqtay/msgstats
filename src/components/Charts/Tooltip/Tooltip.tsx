@@ -1,7 +1,7 @@
 import { RefObject, useCallback, useEffect, useRef } from "react";
 import styles from "./Tooltip.module.scss";
 
-const Tooltip = (props: {show: boolean, rectPos: DOMRect, text: string}) => {
+const Tooltip = (props: {show: boolean, rectPos?: DOMRect, text: string}) => {
   const ttRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null);
 
   const showTooltip = useCallback((tooltip: HTMLDivElement, rectPos: DOMRect, text: string) => {
@@ -19,7 +19,7 @@ const Tooltip = (props: {show: boolean, rectPos: DOMRect, text: string}) => {
   }, []);
 
   useEffect(() => {
-    if (ttRef.current) {
+    if (ttRef.current && props.rectPos) {
       if (props.show) {
         showTooltip(ttRef.current, props.rectPos, props.text);
       }
