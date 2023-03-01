@@ -3,11 +3,12 @@ import MsgEntry from "./MsgEntry";
 import Util from "./Util";
 
 type WordFrequency = { [key: string]: { [key: string]: number; }; };
-type HourlyMsgCountByDate = { [key: string]: { [key: string]: { number: number; }; }; };
+type HourlyMsgCountByDate = { [key: string]: { [key: string]: number[]; }; };
 
 class MsgStats {
   // (24 * 60 * 60 * 1000) = 86400000
-  public static DAY_IN_MILLISECONDS: number = 86400000;
+  public static MILLISECONDS_PER_DAY: number = 86400000;
+  public static HOURS_PER_DAY: number = 24;
 
   private msgCount: HourlyMsgCountByDate;
   private msgData: MsgData;
@@ -37,11 +38,9 @@ class MsgStats {
       listByUser = this.msgData.getEntryList().filter(e => (e.getSender() === user));
 
       for (const date of this.msgData.getDateList()) {
-        // Init empty object
-        res[user][date] = {};
-        for (let hour = 0; hour < 24; hour++) {
-          res[user][date][hour] = 0;
-        }
+        // Init empty list
+        (res[user][date] = []).length = MsgStats.HOURS_PER_DAY;
+        res[user][date].fill(0);
 
         // Get temp list by date
         listByDate = listByUser.filter(e => (e.getDate() === date));
@@ -57,17 +56,17 @@ class MsgStats {
     this.dateEnd = new Date(dateList[dateList.length - 1]);
   }
 
-  public setDateRange (dateStart?: string, dateEnd?: string) {
+  public setDateRange(dateStart?: string, dateEnd?: string) {
     if (dateStart) this.dateStart = new Date(dateStart);
     if (dateEnd) this.dateEnd = new Date(dateEnd);
     this.entryList = this.msgData.getEntryList().filter(entry => {
       const entryDate = entry.getDateObject();
       return (entryDate >= this.dateStart && entryDate <= this.dateEnd);
-    })
+    });
   }
 
   public getDailyMsgCount() {
-    let dailyCount: { [key: string]: { [key: string]: number; } } = {};
+    let dailyCount: { [key: string]: { [key: string]: number; }; } = {};
     this.msgData.getUserList().forEach(user => dailyCount[user] = {});
     let loop = this.dateStart;
     while (loop <= this.dateEnd) {
@@ -77,10 +76,38 @@ class MsgStats {
         const count = hourlyCount === undefined ? 0 : Object.values(hourlyCount).reduce((a, b) => a + b);
         dailyCount[user][dateString] = count;
       }
-      loop = new Date(loop.valueOf() + MsgStats.DAY_IN_MILLISECONDS);
+      loop = new Date(loop.valueOf() + MsgStats.MILLISECONDS_PER_DAY);
     }
     return dailyCount;
   }
+
+  public getHourlyMsgCount() {
+    let res: { [key: string]: number[]; } = {};
+    this.msgData.getUserList().forEach(user => {
+      (res[user] = []).length = MsgStats.HOURS_PER_DAY;
+      res[user].fill(0);
+    });
+    let loop = this.dateStart;
+    while (loop <= this.dateEnd) {
+      const dateString = loop.toISOString().split("T")[0];
+      for (const user of this.msgData.getUserList()) {
+        const hourlyCount = this.msgCount[user][dateString];
+        if (hourlyCount) {
+          for (let hr = 0; hr < MsgStats.HOURS_PER_DAY; hr++) {
+            res[user][hr] += hourlyCount[hr];
+          }
+        }
+      }
+      loop = new Date(loop.valueOf() + MsgStats.MILLISECONDS_PER_DAY);
+    }
+    // Calculate daily average
+    const days = ((this.dateEnd.valueOf() - this.dateStart.valueOf()) / MsgStats.MILLISECONDS_PER_DAY) + 1
+    this.msgData.getUserList().forEach(user => {
+      res[user] = res[user].map(count => count/days);
+    });
+    return res;
+  }
+
 
   public getWordFrequency(filter: Function = ((word: string) => true)): WordFrequency {
     let res: any = {};
@@ -129,7 +156,7 @@ class MsgStats {
     let res: any = {};
 
     // number of days, inclusive
-    const numOfDays = ((this.dateEnd.valueOf() - this.dateStart.valueOf()) / MsgStats.DAY_IN_MILLISECONDS) + 1;
+    const numOfDays = ((this.dateEnd.valueOf() - this.dateStart.valueOf()) / MsgStats.MILLISECONDS_PER_DAY) + 1;
     const dailyCount = this.getDailyMsgCount();
 
     for (const user of this.msgData.getUserList()) {

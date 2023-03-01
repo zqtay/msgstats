@@ -3,17 +3,20 @@ import DonutChart from "../Charts/DonutChart/DonutChart";
 import MsgData from "../../feature/message-stats/MsgData";
 import StopWords from "../../feature/message-stats/StopWords";
 import styles from "./Report.module.scss";
-import { useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
+import LineChart from "../Charts/LineChart/LineChart";
 
 type SimpleData = { [key: string]: number; };
 type MsgStatsData = { [key: string]: { [key: string]: number; }; };
 type WordFreqData = { [key: string]: { [key: string]: number; }[]; };
+type HourlyMsgData = { [key: string]: [number, number][]; };
 
 const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: StopWords | null; }) => {
 
   const [msgCount, setMsgCount] = useState<MsgStatsData | null>(null);
   const [msgStats, setMsgStats] = useState<MsgStatsData | null>(null);
   const [wordFreq, setWordFreq] = useState<WordFreqData | null>(null);
+  const [hourlyMsg, setHourlyMsg] = useState<HourlyMsgData | null>(null);
   const [dateRange, setDateRange] = useState({});
 
   useEffect(() => {
@@ -21,6 +24,7 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
       getWordFreq();
       getMsgCount();
       getMsgStats();
+      getHourlyMsg();
     }
   }, [props.show, props.msgData, props.stopWords]);
 
@@ -53,12 +57,24 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
     }
   };
 
+  const getHourlyMsg = () => {
+    if (props.msgData) {
+      let stats = props.msgData.stats.getHourlyMsgCount();
+      const formattedData: HourlyMsgData = {};
+      Object.entries(stats).forEach(e => {
+        formattedData[e[0]] = e[1].map((y, x) => [x, y]);
+      });
+      setHourlyMsg(formattedData);
+    }
+  };
+
   const handleDateChange = (e: any) => {
     if (props.msgData) {
       props.msgData.stats.setDateRange(e.target.value);
       getWordFreq();
       getMsgCount();
       getMsgStats();
+      getHourlyMsg();
     }
   };
 
@@ -67,29 +83,44 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
       {props.show &&
         <section className={styles["report"]}>
           <input type="date" onChange={handleDateChange}></input>
-          {msgCount && <CalHeatMap data={msgCount}></CalHeatMap>}
-          <div className={styles["msg-stats-charts"]}>
+          <div className={styles["msgstats-charts"]}>
             {msgStats &&
               <>
-                <MsgStatsChart title="Total Message Count" data={msgStats.totMsgCount} />
-                <MsgStatsChart title="Total Character Count" data={msgStats.totCharCount} />
-                <MsgStatsChart title="Average Character Count Per Message" data={msgStats.avgCharCountPerMsg} />
+                <ChartContainer title="Total Message Count">
+                  <DonutChart data={msgStats.totMsgCount} />
+                </ChartContainer>
+                <ChartContainer title="Total Character Count">
+                  <DonutChart data={msgStats.totCharCount} />
+                </ChartContainer>
+                <ChartContainer title="Average Character Count Per Message">
+                  <DonutChart data={msgStats.avgCharCountPerMsg} />
+                </ChartContainer>
               </>
             }
           </div>
-          {wordFreq && <WordFreqTable wordFreq={wordFreq} />}
+          {hourlyMsg &&
+            <ChartContainer title="Average Hourly Message Count">
+              <LineChart data={hourlyMsg} xTicks={24} xLabel={"Time of Day"} yLabel={"Number of Messages"} />
+            </ChartContainer>
+          }
+          {msgCount &&
+            <ChartContainer title="Daily Message Count">
+              <CalHeatMap data={msgCount} />
+            </ChartContainer>
+          }
+          {wordFreq && <WordFreqTable title="Most Used Words" wordFreq={wordFreq} />}
         </section>
       }
     </>
   );
 };
 
-const WordFreqTable = (props: { wordFreq: WordFreqData; }) => {
+const WordFreqTable = (props: { title: string, wordFreq: WordFreqData; }) => {
   let users = Object.keys(props.wordFreq);
   const Table = (props: { user: string, words: SimpleData[]; }) => {
     return (
-      <div>
-        <h5>{props.user}</h5>
+      <div className={styles["wordfreq-table"]}>
+        <div className={styles["wordfreq-table-user"]}>{props.user}</div>
         <table>
           <tbody>
             {props.words
@@ -107,17 +138,20 @@ const WordFreqTable = (props: { wordFreq: WordFreqData; }) => {
   };
 
   return (
-    <div>
-      {users.map(user => <Table key={user} user={user} words={props.wordFreq[user]} />)}
+    <div className={styles["wordfreq-tables-container"]}>
+      <div className={styles["chart-title"]}>{props.title}</div>
+      <div className={styles["wordfreq-tables"]}>
+        {users.map(user => <Table key={user} user={user} words={props.wordFreq[user]} />)}
+      </div>
     </div>
   );
 };
 
-const MsgStatsChart = (props: { title: string, data: SimpleData; }) => {
+const ChartContainer = (props: { title: string, children: ReactNode; }) => {
   return (
-    <div className={styles["msg-stats-chart-container"]}>
-      <h3>{props.title}</h3>
-      <DonutChart data={props.data}></DonutChart>
+    <div className={styles["chart-container"]}>
+      <div className={styles["chart-title"]}>{props.title}</div>
+      {props.children}
     </div>
   );
 };

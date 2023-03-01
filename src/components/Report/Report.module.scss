@@ -2,12 +2,35 @@
   width: 100%;
 }
 
-.msg-stats-charts {
+.msgstats-charts {
   display: flex;
   flex-flow: row wrap;
   justify-content: center;
 }
 
-.msg-stats-chart-container {
-  margin: 0px auto;
+.chart-container {
+  margin: 20px auto;
+}
+
+.chart-title {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.wordfreq-tables-container {
+  justify-content: center;
+}
+
+.wordfreq-tables {
+  display: flex;
+  flex-flow: row wrap;
+}
+
+.wordfreq-table {
+  margin: 20px auto;
+  .wordfreq-table-user {
+    font-weight: bold;
+  }
 }
