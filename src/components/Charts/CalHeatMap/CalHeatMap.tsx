@@ -51,8 +51,8 @@ const CalHeatMap = (
   }, [props]);
 
   return (
-    <div className={styles["chart-calHeatMap"]}>
-      <svg ref={calRef}></svg>
+    <div className={styles["calheatmap-container"]}>
+      <div ref={calRef} className={styles["calheatmap"]} />
       <Tooltip show={tooltipState.show} rectPos={tooltipState.rectPos} text={tooltipState.text} />
     </div>
   );
@@ -112,26 +112,40 @@ function Calendar(data: any[], calRef, setTooltipState, {
   //       : `M${(w + 1) * cellSize},0V${d * cellSize}H${w * cellSize}`}V${weekDays * cellSize}`;
   // }
 
+  const fixed = d3.select(calRef)
+    .append('svg')
+    .attr("width", 45)
+    .attr("height", height * years.length)
+    .style("min-width", 45);
+
   const svg = d3.select(calRef)
+    .append("div")
+    .style("overflow-x", "auto")
+    .append("svg")
     .attr("width", width)
     .attr("height", height * years.length)
     .attr("viewBox", [0, 0, width, height * years.length])
     .attr("font-family", "sans-serif")
     .attr("font-size", 16);
 
+  const yearFixed = fixed.selectAll("g")
+    .data(years)
+    .join("g")
+    .attr("transform", (d, i) => `translate(40.5,${height * i + cellSize * 1.5})`);
+
   const year = svg.selectAll("g")
     .data(years)
     .join("g")
     .attr("transform", (d, i) => `translate(40.5,${height * i + cellSize * 1.5})`);
 
-  year.append("text")
+  yearFixed.append("text")
     .attr("x", -5)
     .attr("y", -5)
     .attr("font-weight", "bold")
     .attr("text-anchor", "end")
     .text(([key]) => key);
 
-  year.append("g")
+  yearFixed.append("g")
     .attr("text-anchor", "end")
     .selectAll("text")
     .data(weekday === "weekday" ? d3.range(1, 6) : d3.range(7))

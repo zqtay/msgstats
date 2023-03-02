@@ -1,9 +1,6 @@
-.chart-line {
+.linechart {
   width: 100%;
   margin: auto;
-  overflow-x: auto;
-
-  svg {
-    width: auto;
-  }
+  display: inline-flex;
+  justify-content: center;
 }

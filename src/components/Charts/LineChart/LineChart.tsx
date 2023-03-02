@@ -8,7 +8,7 @@ const DEFAULT_X_MAX = 100;
 const DEFAULT_Y_MAX = 100;
 
 const LineChart = (props: { data: SeriesData, xLabel?: string, yLabel?: string, xTicks?: number, yTicks?: number; }) => {
-  const chartRef: RefObject<SVGSVGElement> = useRef<SVGSVGElement>(null);
+  const chartRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null);
   const [tooltipState, setTooltipState] = useState({ show: false, rectPos: undefined, text: "" });
 
   useEffect(() => {
@@ -19,7 +19,7 @@ const LineChart = (props: { data: SeriesData, xLabel?: string, yLabel?: string, 
         chartRef.current,
         setTooltipState,
         {
-          width: 1200,
+          width: 1120,
           height: 400,
           margin: 50,
           xLabel: props.xLabel,
@@ -34,9 +34,9 @@ const LineChart = (props: { data: SeriesData, xLabel?: string, yLabel?: string, 
   }, [props.data]);
 
   return (
-    <div className={styles["chart-line"]}>
-      <svg ref={chartRef}></svg>
-      <Tooltip show={tooltipState.show} rectPos={tooltipState?.rectPos} text={tooltipState.text} />
+    <div className={styles["linechart-container"]}>
+      <div ref={chartRef} className={styles["linechart"]}/>
+      <Tooltip show={tooltipState.show} rectPos={tooltipState?.rectPos} text={tooltipState.text}/>
     </div>
   );
 };
@@ -45,7 +45,7 @@ const LineChart = (props: { data: SeriesData, xLabel?: string, yLabel?: string, 
 // https://www.educative.io/answers/how-to-create-a-line-chart-using-d3
 const _LineChart = (
   data: SeriesData,
-  ref: SVGSVGElement,
+  ref: HTMLDivElement,
   setTooltipState: any,
   param: {
     width: number,
@@ -56,10 +56,19 @@ const _LineChart = (
     xTicks?: number,
     yTicks?: number,
     color?: any,
-    valueRound?: number
+    valueRound?: number;
   }) => {
 
+  const fixed = d3.select(ref)
+    .append('svg')
+    .attr("width", param.margin + 10)
+    .attr("height", param.height)
+    .style("min-width", param.margin + 10);
+
   const svg = d3.select(ref)
+    .append('div')
+    .style("overflow-x", "auto")
+    .append('svg')
     .attr("width", param.width)
     .attr("height", param.height)
     .attr("viewBox", [0, 0, param.width, param.height]);
@@ -83,7 +92,7 @@ const _LineChart = (
   }
   if (param.yLabel) {
     // Y label
-    svg.append('text')
+    fixed.append('text')
       .attr('text-anchor', 'middle')
       .attr('transform', `translate(${param.margin - 35},${param.height * 0.5})rotate(-90)`)
       .style('font-size', 15)
@@ -99,7 +108,7 @@ const _LineChart = (
     .attr("transform", "translate(0," + (param.height - param.margin) + ")")
     .style('font-size', 12)
     .call(xAxis);
-  svg.append("g")
+  fixed.append("g")
     .attr("transform", `translate(${param.margin}, 0)`)
     .style('font-size', 12)
     .call(yAxis);
@@ -120,10 +129,10 @@ const _LineChart = (
       .style("opacity", 0.7)
       .style("cursor", "pointer")
       .on("mouseover", function (e, d) {
-        setTooltipState({show: true, rectPos: this.getBoundingClientRect(), text: getTooltipLabel(entry[0], d)});
+        setTooltipState({ show: true, rectPos: this.getBoundingClientRect(), text: getTooltipLabel(entry[0], d) });
       })
       .on("mouseout", function () {
-        setTooltipState((prev: any) => ({...prev, show: false}));
+        setTooltipState((prev: any) => ({ ...prev, show: false }));
       });
 
     line = d3.line()
