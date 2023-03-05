@@ -17,14 +17,15 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
   const [msgStats, setMsgStats] = useState<MsgStatsData | null>(null);
   const [wordFreq, setWordFreq] = useState<WordFreqData | null>(null);
   const [hourlyMsg, setHourlyMsg] = useState<HourlyMsgData | null>(null);
-  const [dateRange, setDateRange] = useState({});
+  const [dateRange, setDateRange] = useState<string[]>(["", ""]);
 
   useEffect(() => {
-    if (props.show) {
+    if (props.show && props.msgData) {
       getWordFreq();
       getMsgCount();
       getMsgStats();
       getHourlyMsg();
+      setDateRange(props.msgData.stats.getDateRange());
     }
   }, [props.show, props.msgData, props.stopWords]);
 
@@ -68,9 +69,18 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
     }
   };
 
-  const handleDateChange = (e: any) => {
-    if (props.msgData) {
-      props.msgData.stats.setDateRange(e.target.value);
+  const handleDateChange = (e: any, mode?: string) => {
+    if (props.msgData && mode) {
+      const newDateRange = dateRange.slice();
+      if (mode === "start") {
+        newDateRange[0] = e.target.value;
+        props.msgData.stats.setDateRange(e.target.value);
+      }
+      else if (mode === "end") {
+        newDateRange[1] = e.target.value;
+        props.msgData.stats.setDateRange(undefined, e.target.value);
+      }
+      setDateRange(newDateRange);
       getWordFreq();
       getMsgCount();
       getMsgStats();
@@ -82,7 +92,8 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
     <>
       {props.show &&
         <section className={styles["report"]}>
-          <input type="date" onChange={handleDateChange}></input>
+          <input type="date" value={dateRange[0]} onChange={(e) => handleDateChange(e, "start")} />
+          <input type="date" value={dateRange[1]} onChange={(e) => handleDateChange(e, "end")} />
           <div className={styles["msgstats-charts"]}>
             {msgStats &&
               <>

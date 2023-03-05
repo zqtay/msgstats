@@ -65,6 +65,10 @@ class MsgStats {
     });
   }
 
+  public getDateRange(): string[] {
+    return [this.dateStart.toISOString().split("T")[0], this.dateEnd.toISOString().split("T")[0]];
+  }
+
   public getDailyMsgCount() {
     let dailyCount: { [key: string]: { [key: string]: number; }; } = {};
     this.msgData.getUserList().forEach(user => dailyCount[user] = {});
