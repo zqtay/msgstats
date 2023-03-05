@@ -12,12 +12,12 @@ class Parser {
   // public static MSG_CSV_DELIMITER: string = ",";
 
   public static async parseMsg(fileList: FileList, setStatus: ((status: string) => void) | undefined = undefined): Promise<string> {
-    let csvText: string = "";
+    let msgDataText: string = "";
     let newLine: string = "";
     let iFileParsed = 0;
-    // let msgCsvPath: string = this.getMsgCsvPath(filePath);
 
-    // fs.writeFileSync(msgCsvPath, "");-
+    // Telegram chat history
+    msgDataText += `app=telegram\n`;
 
     for (const file of fileList) {
       const msgPage: string = await file.text();
@@ -27,7 +27,11 @@ class Parser {
       let msg: ParsedMsg | undefined;
       let msgSenderPrev: string = "";
 
-      // csvText = "";
+      // Get group name if any
+      if (iFileParsed === 0) {
+        let groupName = $(".page_header > .content > .text").eq(0).text().trim();
+        msgDataText += `groupName=${groupName}\n`;
+      }
 
       for (let iMsgElement = 0; iMsgElement < msgElements.length; iMsgElement++) {
         msg = this.parseMsgElement(msgElements.eq(iMsgElement), msgSenderPrev);
@@ -37,7 +41,7 @@ class Parser {
 
           if (msg.text !== "" && !msg.isForwarded) {
             // Skip messages with empty text, most likely forwarded message or media sharing
-            csvText += `${newLine}${msg.time},${msg.sender},${msg.text}`;
+            msgDataText += `${newLine}${msg.time},${msg.sender},${msg.text}`;
             if (newLine === "") {
               // New line on second line to avoid having empty last line
               newLine = "\n";
@@ -50,11 +54,9 @@ class Parser {
       if (setStatus !== undefined) {
         setStatus(`parse_${iFileParsed.toString()}`);
       }
-      // console.log(file.name);
-      // fs.appendFileSync(msgCsvPath, csvText);
     }
 
-    return csvText;
+    return msgDataText;
   }
 
   public static async parseStopWords(fileList: FileList, setStatus: ((status: string) => void) | undefined = undefined): Promise<string> {

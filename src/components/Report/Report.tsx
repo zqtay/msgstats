@@ -88,12 +88,35 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
     }
   };
 
+  const getReportTitle = () => {
+    if (props.msgData) {
+      const appName = props.msgData.getAppName();
+      const groupName = props.msgData.getGroupName();
+      let title: string;
+      if (groupName !== "") {
+        title =`${groupName} ${appName} `;
+      }
+      else {
+        const userList = props.msgData.getUserList();
+        title = `${userList[0]} & ${userList[1]} ${appName} `;
+      }
+      return title + `Message Analysis Report`;
+    }
+  };
+
   return (
     <>
       {props.show &&
         <section id="report" className={styles["report"]}>
-          <input type="date" value={dateRange[0]} onChange={(e) => handleDateChange(e, "start")} />
-          <input type="date" value={dateRange[1]} onChange={(e) => handleDateChange(e, "end")} />
+          <div className={styles["report-title"]}>
+            {getReportTitle()}
+          </div>
+          <div className={styles["date-range"]}>
+            <span>From</span>
+            <input type="date" value={dateRange[0]} onChange={(e) => handleDateChange(e, "start")} />
+            <span>To</span>
+            <input type="date" value={dateRange[1]} onChange={(e) => handleDateChange(e, "end")} />
+          </div>
           <div className={styles["msgstats-charts"]}>
             {msgStats &&
               <>

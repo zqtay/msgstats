@@ -2,6 +2,17 @@
   width: 100%;
 }
 
+.report-title {
+  width: 100%;
+  text-align: center;
+}
+
+.date-range {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
 .msgstats-charts {
   display: flex;
   flex-flow: row wrap;

@@ -2,22 +2,25 @@ import MsgEntry from "./MsgEntry";
 import MsgStats from "./MsgStats";
 
 class MsgData {
+  private appName: string;
+  private groupName: string;
   private entryList: MsgEntry[];
-
   private userList: string[];
   private dateList: string[];
   public stats: MsgStats;
 
   constructor() {
+    this.appName = "";
+    this.groupName = "";
     this.entryList = [];
     this.userList = [];
     this.dateList = [];
     this.stats = new MsgStats(this);
   }
 
-  public async init(csvText: string): Promise<void> {
+  public async init(data: string): Promise<void> {
     try {
-      this.entryList = this.initEntryList(csvText);
+      this.initData(data);
       this.userList = this.initUserList();
       this.dateList = this.initDateList();
       this.stats.init();
@@ -29,8 +32,12 @@ class MsgData {
     }
   }
 
-  private initEntryList(csvText: string): MsgEntry[] {
-    return csvText.split("\n").map((e: string) => {
+  private initData(data: string) {
+    let lines = data.split("\n");
+    this.appName = lines[0].split("app=")[1];
+    this.groupName = lines[1].split("groupName=")[1];
+    lines = lines.slice(2);
+    this.entryList = lines.map((e: string, i: number) => {
       let entry = new MsgEntry();
       entry.init(e);
       return entry;
@@ -58,6 +65,20 @@ class MsgData {
     // It should be already sorted, but sort again just in case
     res.sort();
     return res;
+  }
+
+  public getAppName(): string {
+    let appName: string = "";
+    switch (this.appName) {
+      case "telegram":
+        appName = "Telegram";
+        break;
+    }
+    return appName;
+  }
+
+  public getGroupName(): string {
+    return this.groupName;
   }
 
   public getEntryList(): MsgEntry[] {
