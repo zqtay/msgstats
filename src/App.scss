@@ -43,3 +43,8 @@ $grid-breakpoints-xxl: 1400px;
     display: none;
   }
 }
+
+html {
+  scroll-padding-top: 60px;
+  scroll-behavior: smooth;
+}

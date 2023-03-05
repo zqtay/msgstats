@@ -91,7 +91,7 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
   return (
     <>
       {props.show &&
-        <section className={styles["report"]}>
+        <section id="report" className={styles["report"]}>
           <input type="date" value={dateRange[0]} onChange={(e) => handleDateChange(e, "start")} />
           <input type="date" value={dateRange[1]} onChange={(e) => handleDateChange(e, "end")} />
           <div className={styles["msgstats-charts"]}>
