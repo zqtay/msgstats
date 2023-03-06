@@ -6,8 +6,9 @@ const Header = () => {
   return (
     <header>
       <Container className={styles.container}>
-        <a href="/">
-          <img className={styles.logo} alt="logo" src={`/logo.png`}></img>
+        <a className={styles["nav-brand"]} href="/">
+          <img className={styles["brand-logo"]} alt="logo" src={`/logo.png`}></img>
+          <span className={styles["brand-text"]}>MsgStats</span>
         </a>
         <div className={styles["nav-container"]}>
           <button className={styles["nav-button"]}>{">"}</button>
