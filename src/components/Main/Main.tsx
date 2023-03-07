@@ -49,7 +49,7 @@ const Main = () => {
     <main>
       <Container>
         {(msgDataStatus.split("_")[0] === "parse" || msgDataStatus === "success") &&
-          <ProgressBar primary value={getParseProgress()} max={msgFileDirRef.current.files.length} />
+          <ProgressBar value={getParseProgress()} max={msgFileDirRef.current.files.length} />
         }
         <h2>MsgData status: {msgDataStatus}</h2>
         <h2>StopWords status: {stopWordsStatus}</h2>
