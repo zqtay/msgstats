@@ -1,5 +1,11 @@
+@import "../../App.scss";
+
 .report {
   width: 100%;
+}
+
+.report-container {
+  display: block;
 }
 
 .report-title {
@@ -41,6 +47,7 @@
 
 .wordfreq-table {
   margin: 20px auto;
+
   .wordfreq-table-user {
     font-weight: bold;
   }

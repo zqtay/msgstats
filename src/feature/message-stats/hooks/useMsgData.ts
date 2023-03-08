@@ -2,7 +2,8 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import MsgData from "../MsgData";
 import Parser from "../Parser";
 
-export default function useMsgData(msgFileList: FileList | null): [MsgData | null, Dispatch<SetStateAction<MsgData | null>>, string] {
+export default function useMsgData(): [Dispatch<SetStateAction<FileList | null>>, MsgData | null, Dispatch<SetStateAction<MsgData | null>>, string] {
+  const [msgFileList, setMsgFileList] = useState<FileList | null>(null);
   const [msgData, setMsgData] = useState<MsgData | null>(null);
   const [status, setStatus] = useState<string>("");
 
@@ -45,5 +46,5 @@ export default function useMsgData(msgFileList: FileList | null): [MsgData | nul
     init();
   }, [msgFileList]);
 
-  return [msgData, setMsgData, status];
+  return [setMsgFileList, msgData, setMsgData, status];
 }

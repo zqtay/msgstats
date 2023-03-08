@@ -5,6 +5,7 @@ import StopWords from "../../feature/message-stats/StopWords";
 import styles from "./Report.module.scss";
 import { ReactNode, useEffect, useState } from 'react';
 import LineChart from "../Charts/LineChart/LineChart";
+import Container from "../UI/Container/Container";
 
 type SimpleData = { [key: string]: number; };
 type MsgStatsData = { [key: string]: { [key: string]: number; }; };
@@ -94,7 +95,7 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
       const groupName = props.msgData.getGroupName();
       let title: string;
       if (groupName !== "") {
-        title =`${groupName} ${appName} `;
+        title = `${groupName} ${appName} `;
       }
       else {
         const userList = props.msgData.getUserList();
@@ -108,41 +109,43 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
     <>
       {props.show &&
         <section id="report" className={styles["report"]}>
-          <div className={styles["report-title"]}>
-            {getReportTitle()}
-          </div>
-          <div className={styles["date-range"]}>
-            <span>From</span>
-            <input type="date" value={dateRange[0]} onChange={(e) => handleDateChange(e, "start")} />
-            <span>To</span>
-            <input type="date" value={dateRange[1]} onChange={(e) => handleDateChange(e, "end")} />
-          </div>
-          <div className={styles["msgstats-charts"]}>
-            {msgStats &&
-              <>
-                <ChartContainer title="Total Message Count">
-                  <DonutChart data={msgStats.totMsgCount} />
-                </ChartContainer>
-                <ChartContainer title="Total Character Count">
-                  <DonutChart data={msgStats.totCharCount} />
-                </ChartContainer>
-                <ChartContainer title="Average Character Count Per Message">
-                  <DonutChart data={msgStats.avgCharCountPerMsg} />
-                </ChartContainer>
-              </>
+          <Container className={styles["report-container"]}>
+            <div className={styles["report-title"]}>
+              {getReportTitle()}
+            </div>
+            <div className={styles["date-range"]}>
+              <span>From</span>
+              <input type="date" value={dateRange[0]} onChange={(e) => handleDateChange(e, "start")} />
+              <span>To</span>
+              <input type="date" value={dateRange[1]} onChange={(e) => handleDateChange(e, "end")} />
+            </div>
+            <div className={styles["msgstats-charts"]}>
+              {msgStats &&
+                <>
+                  <ChartContainer title="Total Message Count">
+                    <DonutChart data={msgStats.totMsgCount} />
+                  </ChartContainer>
+                  <ChartContainer title="Total Character Count">
+                    <DonutChart data={msgStats.totCharCount} />
+                  </ChartContainer>
+                  <ChartContainer title="Average Character Count Per Message">
+                    <DonutChart data={msgStats.avgCharCountPerMsg} />
+                  </ChartContainer>
+                </>
+              }
+            </div>
+            {hourlyMsg &&
+              <ChartContainer title="Average Hourly Message Count">
+                <LineChart data={hourlyMsg} xTicks={24} xLabel={"Time of Day"} yLabel={"Number of Messages"} />
+              </ChartContainer>
             }
-          </div>
-          {hourlyMsg &&
-            <ChartContainer title="Average Hourly Message Count">
-              <LineChart data={hourlyMsg} xTicks={24} xLabel={"Time of Day"} yLabel={"Number of Messages"} />
-            </ChartContainer>
-          }
-          {msgCount &&
-            <ChartContainer title="Daily Message Count">
-              <CalHeatMap data={msgCount} />
-            </ChartContainer>
-          }
-          {wordFreq && <WordFreqTable title="Most Used Words" wordFreq={wordFreq} />}
+            {msgCount &&
+              <ChartContainer title="Daily Message Count">
+                <CalHeatMap data={msgCount} />
+              </ChartContainer>
+            }
+            {wordFreq && <WordFreqTable title="Most Used Words" wordFreq={wordFreq} />}
+          </Container>
         </section>
       }
     </>

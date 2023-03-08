@@ -2,7 +2,8 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import Parser from "../Parser";
 import StopWords from "../StopWords";
 
-export default function useStopWords(swFileList: FileList | null): [StopWords | null, Dispatch<SetStateAction<StopWords | null>>, string] {
+export default function useStopWords(): [Dispatch<SetStateAction<FileList | null>>, StopWords | null, Dispatch<SetStateAction<StopWords | null>>, string] {
+  const [swFileList, setSwFileList] = useState<FileList | null>(null);
   const [stopWords, setStopWords] = useState<StopWords | null>(null);
   const [status, setStatus] = useState<string>("");
 
@@ -45,5 +46,5 @@ export default function useStopWords(swFileList: FileList | null): [StopWords | 
     init();
   }, [swFileList]);
 
-  return [stopWords, setStopWords, status];
+  return [setSwFileList, stopWords, setStopWords, status];
 }
