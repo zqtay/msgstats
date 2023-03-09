@@ -11,7 +11,7 @@ class Parser {
   // public static MSG_CSV_FILENAME: string = "msg.csv";
   // public static MSG_CSV_DELIMITER: string = ",";
 
-  public static async parseMsg(fileList: FileList, setStatus: ((status: string) => void) | undefined = undefined): Promise<string> {
+  public static async parseTelegramMsg(fileList: FileList, setStatus: ((status: string) => void) | undefined = undefined): Promise<string> {
     let msgDataText: string = "";
     let newLine: string = "";
     let iFileParsed = 0;
@@ -29,12 +29,12 @@ class Parser {
 
       // Get group name if any
       if (iFileParsed === 0) {
-        let groupName = $(".page_header > .content > .text").eq(0).text().trim();
-        msgDataText += `groupName=${groupName}\n`;
+        let msgTarget = $(".page_header > .content > .text").eq(0).text().trim();
+        msgDataText += `msgTarget=${msgTarget}\n`;
       }
 
       for (let iMsgElement = 0; iMsgElement < msgElements.length; iMsgElement++) {
-        msg = this.parseMsgElement(msgElements.eq(iMsgElement), msgSenderPrev);
+        msg = this.parseTelegramMsgElement(msgElements.eq(iMsgElement), msgSenderPrev);
         if (msg !== undefined) {
           // Save sender name of the current message
           msgSenderPrev = msg.sender;
@@ -76,7 +76,7 @@ class Parser {
   //     return path.join(filePath, Parser.MSG_CSV_FILENAME);
   // }
 
-  private static parseMsgElement(msgElement: any, msgSenderPrev: string): ParsedMsg | undefined {
+  private static parseTelegramMsgElement(msgElement: any, msgSenderPrev: string): ParsedMsg | undefined {
     try {
       let msgTime: string = msgElement.find(".date").eq(0).attr("title");
       let msgSender: string = msgElement.find(".from_name").eq(0).text().trim();

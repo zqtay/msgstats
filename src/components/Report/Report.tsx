@@ -92,13 +92,13 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
   const getReportTitle = () => {
     if (props.msgData) {
       const appName = props.msgData.getAppName();
-      const groupName = props.msgData.getGroupName();
+      const msgTarget = props.msgData.getMsgTarget();
+      const userList = props.msgData.getUserList();
       let title: string;
-      if (groupName !== "") {
-        title = `${groupName} ${appName} `;
+      if (msgTarget !== "" && msgTarget !== userList[0] && msgTarget !== userList[1]) {
+        title = `${msgTarget} ${appName} `;
       }
       else {
-        const userList = props.msgData.getUserList();
         title = `${userList[0]} & ${userList[1]} ${appName} `;
       }
       return title + `Message Analysis Report`;

@@ -1,6 +1,11 @@
 @import "../../App.scss";
 
 .start {
-  height: 100vh;
   background-color: white;
+}
+
+.start-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }

@@ -2,13 +2,25 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import MsgData from "../MsgData";
 import Parser from "../Parser";
 
-export default function useMsgData(): [Dispatch<SetStateAction<FileList | null>>, MsgData | null, Dispatch<SetStateAction<MsgData | null>>, string] {
+const useMsgData = (): [
+  Dispatch<SetStateAction<string>>,
+  Dispatch<SetStateAction<FileList | null>>,
+  MsgData | null,
+  string
+] => {
+  const [msgApp, setMsgApp] = useState<string>("");
   const [msgFileList, setMsgFileList] = useState<FileList | null>(null);
   const [msgData, setMsgData] = useState<MsgData | null>(null);
   const [status, setStatus] = useState<string>("");
 
   const init = async () => {
     let msgDataText: string;
+
+    if (msgApp === null || msgApp === "") {
+      setMsgData(prevState => null);
+      setStatus(prevState => "app_not_selected");
+      return;
+    }
 
     if (msgFileList === null || msgFileList.length === 0) {
       setMsgData(prevState => null);
@@ -19,7 +31,14 @@ export default function useMsgData(): [Dispatch<SetStateAction<FileList | null>>
     setStatus(prevState => "parse_start");
 
     try {
-      msgDataText = await Parser.parseMsg(msgFileList, setStatus);
+      if (msgApp === "telegram") {
+        msgDataText = await Parser.parseTelegramMsg(msgFileList, setStatus);
+      }
+      else {
+        setMsgData(prevState => null);
+        setStatus(prevState => "app_unknown");
+        return;
+      }
     }
     catch (e) {
       setStatus(prevState => "parse_failed");
@@ -44,7 +63,9 @@ export default function useMsgData(): [Dispatch<SetStateAction<FileList | null>>
 
   useEffect(() => {
     init();
-  }, [msgFileList]);
+  }, [msgApp, msgFileList]);
 
-  return [setMsgFileList, msgData, setMsgData, status];
-}
+  return [setMsgApp, setMsgFileList, msgData, status];
+};
+
+export default useMsgData;

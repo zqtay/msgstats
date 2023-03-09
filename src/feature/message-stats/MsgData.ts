@@ -3,7 +3,7 @@ import MsgStats from "./MsgStats";
 
 class MsgData {
   private appName: string;
-  private groupName: string;
+  private msgTarget: string;
   private entryList: MsgEntry[];
   private userList: string[];
   private dateList: string[];
@@ -11,7 +11,7 @@ class MsgData {
 
   constructor() {
     this.appName = "";
-    this.groupName = "";
+    this.msgTarget = "";
     this.entryList = [];
     this.userList = [];
     this.dateList = [];
@@ -35,7 +35,7 @@ class MsgData {
   private initData(data: string) {
     let lines = data.split("\n");
     this.appName = lines[0].split("app=")[1];
-    this.groupName = lines[1].split("groupName=")[1];
+    this.msgTarget = lines[1].split("msgTarget=")[1];
     lines = lines.slice(2);
     this.entryList = lines.map((e: string, i: number) => {
       let entry = new MsgEntry();
@@ -77,8 +77,8 @@ class MsgData {
     return appName;
   }
 
-  public getGroupName(): string {
-    return this.groupName;
+  public getMsgTarget(): string {
+    return this.msgTarget;
   }
 
   public getEntryList(): MsgEntry[] {
