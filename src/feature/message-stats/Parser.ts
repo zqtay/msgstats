@@ -7,7 +7,9 @@ type ParsedMsg = {
   isForwarded: boolean;
 };
 
-class Parser {
+export type ParseStatus = { state: string, error: string; };
+
+export default class Parser {
   // public static MSG_CSV_FILENAME: string = "msg.csv";
   // public static MSG_CSV_DELIMITER: string = ",";
 
@@ -134,5 +136,3 @@ class Parser {
   //     return fileList;
   // }
 }
-
-export default Parser;

@@ -1,71 +1,79 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import MsgData from "../MsgData";
-import Parser from "../Parser";
+import Parser, { ParseStatus } from "../Parser";
+
+export type MsgFilesInput = {
+  app: string;
+  fileList: FileList | null;
+};
 
 const useMsgData = (): [
-  Dispatch<SetStateAction<string>>,
-  Dispatch<SetStateAction<FileList | null>>,
+  Dispatch<SetStateAction<MsgFilesInput>>,
   MsgData | null,
-  string
+  ParseStatus
 ] => {
-  const [msgApp, setMsgApp] = useState<string>("");
-  const [msgFileList, setMsgFileList] = useState<FileList | null>(null);
+  const [msgFilesInput, setMsgFilesInput] = useState<MsgFilesInput>({app: "", fileList: null});
   const [msgData, setMsgData] = useState<MsgData | null>(null);
-  const [status, setStatus] = useState<string>("");
+  const [status, setStatus] = useState<ParseStatus>({ state: "", error: "" });
 
-  const init = async () => {
+  const setParseState = (state: string) => setStatus(prev => ({ ...prev, state: state }));
+  const setParseError = (error: string) => setStatus(prev => ({ ...prev, error: error }));
+
+  const init = useCallback(async () => {
     let msgDataText: string;
+    setParseError("");
+    setParseState("");
 
-    if (msgApp === null || msgApp === "") {
-      setMsgData(prevState => null);
-      setStatus(prevState => "app_not_selected");
+    if (msgFilesInput.app === "") {
+      setMsgData(null);
+      setParseError("app_not_selected");
       return;
     }
 
-    if (msgFileList === null || msgFileList.length === 0) {
-      setMsgData(prevState => null);
-      setStatus(prevState => "no_file");
+    if (msgFilesInput.fileList === null || msgFilesInput.fileList.length === 0) {
+      setMsgData(null);
+      setParseError("no_file");
       return;
     }
 
-    setStatus(prevState => "parse_start");
+    setParseState("parse_start");
 
     try {
-      if (msgApp === "telegram") {
-        msgDataText = await Parser.parseTelegramMsg(msgFileList, setStatus);
+      if (msgFilesInput.app === "telegram") {
+        msgDataText = await Parser.parseTelegramMsg(msgFilesInput.fileList, setParseState);
       }
       else {
-        setMsgData(prevState => null);
-        setStatus(prevState => "app_unknown");
+        setMsgData(null);
+        setParseError("app_unknown");
         return;
       }
     }
     catch (e) {
-      setStatus(prevState => "parse_failed");
+      setParseError("parse_failed");
       return;
     }
 
-    setStatus(prevState => "init_start");
+    setParseState("init_start");
 
     const newMsgData: MsgData = new MsgData();
     try {
       await newMsgData.init(msgDataText);
     }
     catch (e) {
-      setStatus(prevState => "init_failed");
+      setParseError("init_failed");
       return;
     }
 
-    setMsgData(prevState => newMsgData);
+    setMsgData(newMsgData);
 
-    setStatus(prevState => "success");
-  };
+    setParseState("success");
+  }, [msgFilesInput]);
 
   useEffect(() => {
     init();
-  }, [msgApp, msgFileList]);
+  }, [init]);
 
-  return [setMsgApp, setMsgFileList, msgData, status];
+  return [setMsgFilesInput, msgData, status];
 };
 
 export default useMsgData;
