@@ -5,18 +5,14 @@
 }
 
 .progress-background {
-  height: 20px;
-  width: 100%;
   fill: $color-highlight1;
 }
 
 .progress-bar {
-  height: 20px;
   fill: $color-primary2;
 }
 
 .progress-tick {
-  height: 20px;
   stroke-width: 5px;
   stroke: white;
 }
@@ -24,4 +20,12 @@
 .progress-tick-label {
   fill: black;
   text-anchor: middle;
+}
+
+.text-anchor-start {
+  text-anchor: start;
+}
+
+.text-anchor-end {
+  text-anchor: end;
 }
