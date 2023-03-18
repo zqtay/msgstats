@@ -8,8 +8,8 @@ import useStopWords from '../../feature/message-stats/hooks/useStopWords';
 import styles from "./Start.module.scss";
 
 type InputFiles = {
-  msgApp: string,
-  msgDataFiles: FileList | null,
+  msgApp: string;
+  msgDataFiles: FileList | null;
   stopWordsFiles: FileList | null;
 };
 
@@ -17,32 +17,42 @@ const guideLinks: { [key: string]: string; } = {
   "telegram": "https://telegram.org/blog/export-and-more"
 };
 
-const Start = (props: { setReportData: any, setShowReport: any; }) => {
-  const [step, setStep] = useState<number>(0);
-  const [input, setInput] = useState<InputFiles>({ msgApp: "", msgDataFiles: null, stopWordsFiles: null });
+const inputNull: InputFiles = { msgApp: "", msgDataFiles: null, stopWordsFiles: null };
 
-  const [setMsgFilesInput, msgData, msgDataStatus] = useMsgData();
+const Start = (props: { step: number; setStep: any; setReportData: any; setShowReport: any; }) => {
+  const [input, setInput] = useState<InputFiles>(inputNull);
+
+  const [setMsgFilesInput, msgData, msgDataStatus, clearMsgDataStatus] = useMsgData();
   const [setSwFileList, stopWords, stopWordsStatus] = useStopWords();
+
+  const { step, setStep, setReportData, setShowReport } = props;
 
   useEffect(() => {
     if (msgDataStatus.state === "success") {
-      props.setReportData((prev: any) => ({ ...prev, msgData: msgData }));
-      props.setShowReport(true);
+      setReportData((prev: any) => ({ ...prev, msgData: msgData }));
+      setShowReport(true);
     }
     if (stopWordsStatus === "success") {
-      props.setReportData((prev: any) => ({ ...prev, stopWords: stopWords }));
+      setReportData((prev: any) => ({ ...prev, stopWords: stopWords }));
     }
-  }, [msgDataStatus, stopWordsStatus]);
+  }, [msgDataStatus, stopWordsStatus, msgData, setReportData, setShowReport, stopWords]);
+
+  const handleRestart = useCallback(() => {
+    clearMsgDataStatus();
+    setInput(inputNull);
+    setShowReport(false);
+    setStep(1);
+  }, [clearMsgDataStatus, setInput, setShowReport, setStep]);
 
   return (
     <section id="start" className={styles["start-section"]}>
       <Container>
-        <ProgressBar  value={step} min={1} max={3} tickValues={[1,2,3]} tickLabels={["Select", "Import", "Process"]}/>
-        <div className={`${styles["start"]} ${step === 0 ? styles["start-intro"] : ""}`}>
-          {(step === 0) && <Step0 setStep={setStep} />}
+        <div className={styles["start"]}>
+          <ProgressBar value={step} min={1} max={4} tickValues={[1, 2, 3, 4]} tickLabels={["Select", "Import", "Process", "View"]} tickStyle="circle" />
           {(step === 1) && <Step1 setStep={setStep} input={input} setInput={setInput} />}
           {(step === 2) && <Step2 setStep={setStep} input={input} setInput={setInput} />}
-          {(step === 3) && <Step3 input={input} setMsgFilesInput={setMsgFilesInput} msgDataStatus={msgDataStatus} />}
+          {(step === 3) && <Step3 setStep={setStep} input={input} setMsgFilesInput={setMsgFilesInput} msgDataStatus={msgDataStatus} handleRestart={handleRestart} />}
+          {(step === 4) && <Step4 handleRestart={handleRestart} />}
         </div>
         {/* <input id="swFileSelect" accept=".txt" multiple type="file" ref={swFileDirRef} /> */}
       </Container>
@@ -50,19 +60,9 @@ const Start = (props: { setReportData: any, setShowReport: any; }) => {
   );
 };
 
-const Step0 = (props: { setStep: Dispatch<SetStateAction<number>>; }) => {
-  return <>
-    <div className={styles["step-title"]}>MsgStats</div>
-    <div className={styles["step-subtitle"]}>Transform your message history into meaningful statistics.</div>
-    <div className={styles["step-nav"]}>
-      <Button primary onClick={() => props.setStep(1)}>Start</Button>
-    </div>
-  </>;
-};
-
 const Step1 = (props: {
-  setStep: Dispatch<SetStateAction<number>>,
-  input: InputFiles,
+  setStep: Dispatch<SetStateAction<number>>;
+  input: InputFiles;
   setInput: Dispatch<SetStateAction<InputFiles>>;
 }) => {
   return <>
@@ -92,7 +92,7 @@ const Step1 = (props: {
 
 const Step2 = (props: {
   setStep: Dispatch<SetStateAction<number>>;
-  input: InputFiles,
+  input: InputFiles;
   setInput: Dispatch<SetStateAction<InputFiles>>;
 }) => {
   return <>
@@ -113,9 +113,11 @@ const Step2 = (props: {
 };
 
 const Step3 = (props: {
-  input: InputFiles,
-  setMsgFilesInput: Dispatch<SetStateAction<MsgFilesInput>>,
-  msgDataStatus: ParseStatus,
+  setStep: Dispatch<SetStateAction<number>>;
+  input: InputFiles;
+  setMsgFilesInput: Dispatch<SetStateAction<MsgFilesInput>>;
+  msgDataStatus: ParseStatus;
+  handleRestart: () => void;
 }) => {
   const max = (props.input.msgDataFiles) ? props.input.msgDataFiles.length : 0;
   const getParseProgress = useCallback((): number => {
@@ -132,9 +134,15 @@ const Step3 = (props: {
 
   useEffect(() => {
     if (props.input.msgApp && props.input.msgDataFiles) {
-      props.setMsgFilesInput({app: props.input.msgApp, fileList: props.input.msgDataFiles});
+      props.setMsgFilesInput({ app: props.input.msgApp, fileList: props.input.msgDataFiles });
     }
   }, [props.input.msgApp, props.input.msgDataFiles]);
+
+  useEffect(() => {
+    if (props.msgDataStatus.state === "success") {
+      props.setStep(4);
+    }
+  }, [props.msgDataStatus.state]);
 
   return <>
     <div className={styles["step-title"]}>Process</div>
@@ -151,7 +159,31 @@ const Step3 = (props: {
         </p>
       }
     </div>
+    <div className={styles["step-nav"]}>
+      {props.msgDataStatus.error &&
+        <ButtonRestart handleRestart={props.handleRestart} />
+      }
+    </div>
   </>;
+};
+
+const Step4 = (props: {
+  handleRestart: () => void;
+}) => {
+  return <>
+    <div className={styles["step-title"]}>View</div>
+    <div className={styles["step-subtitle"]}>Process completed. The report is ready for viewing.</div>
+    <div className={styles["step-nav"]}>
+      <Button primary href={`./#report`}>View Report</Button>
+      <ButtonRestart handleRestart={props.handleRestart} />
+    </div>
+  </>;
+};
+
+const ButtonRestart = (props: {
+  handleRestart: () => void;
+}) => {
+  return <Button default onClick={props.handleRestart}>Restart</Button>;
 };
 
 export default Start;

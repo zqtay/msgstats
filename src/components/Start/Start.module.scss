@@ -1,6 +1,8 @@
 @import "../../App.scss";
 
 .start-section {
+  height: calc(100vh - 160px);
+  padding: 50px 0px;
   background-color: white;
 }
 
@@ -8,4 +10,30 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  text-align: center;
+  align-items: center;
+}
+
+.step-title {
+  width: 100%;
+  font-size: 30px;
+  margin: 20px 0;
+}
+
+.step-subtitle {
+  width: 100%;
+  font-size: 15px;
+  margin: 10px 0;
+}
+
+.step-content {
+  width: 100%;
+}
+
+.step-nav {
+  width: fit-content;
+  display: flex;
+  flex-direction: row;
+  margin: 20px 0;
+  gap: 20px;
 }

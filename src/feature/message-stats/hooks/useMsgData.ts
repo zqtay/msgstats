@@ -7,17 +7,24 @@ export type MsgFilesInput = {
   fileList: FileList | null;
 };
 
+const statusDefault = { state: "", error: "" };
+
 const useMsgData = (): [
   Dispatch<SetStateAction<MsgFilesInput>>,
   MsgData | null,
-  ParseStatus
+  ParseStatus,
+  () => void,
 ] => {
   const [msgFilesInput, setMsgFilesInput] = useState<MsgFilesInput>({app: "", fileList: null});
   const [msgData, setMsgData] = useState<MsgData | null>(null);
-  const [status, setStatus] = useState<ParseStatus>({ state: "", error: "" });
+  const [status, setStatus] = useState<ParseStatus>(statusDefault);
 
   const setParseState = (state: string) => setStatus(prev => ({ ...prev, state: state }));
   const setParseError = (error: string) => setStatus(prev => ({ ...prev, error: error }));
+
+  const clearStatus = () => {
+    setStatus(statusDefault);
+  };
 
   const init = useCallback(async () => {
     let msgDataText: string;
@@ -73,7 +80,7 @@ const useMsgData = (): [
     init();
   }, [init]);
 
-  return [setMsgFilesInput, msgData, status];
+  return [setMsgFilesInput, msgData, status, clearStatus];
 };
 
 export default useMsgData;
