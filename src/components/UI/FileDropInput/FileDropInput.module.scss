@@ -1,0 +1,28 @@
+@import "../../../App.scss";
+
+.drop-area {
+  border: 5px dashed $color-highlight1;
+  border-radius: 10px;
+  height: 200px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  @include transition-default(border);
+
+  &:hover,
+  &:focus {
+    border: 5px solid $color-primary2;
+  }
+}
+
+.button {
+  background-color: $color-primary2;
+}
+
+.input {
+  display: none;
+}

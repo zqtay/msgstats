@@ -6,8 +6,10 @@ import { ParseStatus } from "../../feature/message-stats/Parser";
 import useMsgData, { MsgFilesInput } from '../../feature/message-stats/hooks/useMsgData';
 import useStopWords from '../../feature/message-stats/hooks/useStopWords';
 import styles from "./Start.module.scss";
+import CollapseButton from "../UI/CollapseButton/CollapseButton";
+import FileDropInput from "../UI/FileDropInput/FileDropInput";
 
-type InputFiles = {
+type InputInfo = {
   msgApp: string;
   msgDataFiles: FileList | null;
   stopWordsFiles: FileList | null;
@@ -17,10 +19,10 @@ const guideLinks: { [key: string]: string; } = {
   "telegram": "https://telegram.org/blog/export-and-more"
 };
 
-const inputNull: InputFiles = { msgApp: "", msgDataFiles: null, stopWordsFiles: null };
+const inputNull: InputInfo = { msgApp: "", msgDataFiles: null, stopWordsFiles: null };
 
 const Start = (props: { step: number; setStep: any; setReportData: any; setShowReport: any; }) => {
-  const [input, setInput] = useState<InputFiles>(inputNull);
+  const [input, setInput] = useState<InputInfo>(inputNull);
 
   const [setMsgFilesInput, msgData, msgDataStatus, clearMsgDataStatus] = useMsgData();
   const [setSwFileList, stopWords, stopWordsStatus] = useStopWords();
@@ -54,7 +56,6 @@ const Start = (props: { step: number; setStep: any; setReportData: any; setShowR
           {(step === 3) && <Step3 setStep={setStep} input={input} setMsgFilesInput={setMsgFilesInput} msgDataStatus={msgDataStatus} handleRestart={handleRestart} />}
           {(step === 4) && <Step4 handleRestart={handleRestart} />}
         </div>
-        {/* <input id="swFileSelect" accept=".txt" multiple type="file" ref={swFileDirRef} /> */}
       </Container>
     </section>
   );
@@ -62,29 +63,38 @@ const Start = (props: { step: number; setStep: any; setReportData: any; setShowR
 
 const Step1 = (props: {
   setStep: Dispatch<SetStateAction<number>>;
-  input: InputFiles;
-  setInput: Dispatch<SetStateAction<InputFiles>>;
+  input: InputInfo;
+  setInput: Dispatch<SetStateAction<InputInfo>>;
 }) => {
+
+  const ExportGuide = (props: { msgApp: string; }) => {
+    return <>
+      Click the link to learn how to export message history.
+      <br />
+      <a href={guideLinks[props.msgApp]}>{guideLinks[props.msgApp]}</a>
+      <br />
+      If your message history (.html) files are ready, please proceed to the next step.
+    </>;
+  };
+
+  const setMsgApp = (msgApp: string) => props.setInput((prev: InputInfo) => ({ ...prev, msgApp: msgApp }));
+
   return <>
     <div className={styles["step-title"]}>Select</div>
     <div className={styles["step-subtitle"]}>Select your messaging app.</div>
-    <div className={styles["step-content"]}>
-      <input type="radio" id="radio-app-telegram" name="app" value="telegram"
-        onChange={e => props.setInput((prev: InputFiles) => ({ ...prev, msgApp: e.target.value }))}
-        defaultChecked={props.input.msgApp === "telegram"} />
-      <label htmlFor="radio-app-telegram">Telegram</label>
-      {
-        props.input.msgApp &&
-        <div>
-          <p>Please follow the link to learn how to export your message history.</p>
-          <a href={guideLinks[props.input.msgApp]}>{guideLinks[props.input.msgApp]}</a>
-          <p>If you already have your message history (.html) files ready, please proceed to the next step.</p>
-        </div>
-      }
+    <div className={`${styles["step-content"]} ${styles["app-selection"]}`}>
+      <CollapseButton value="telegram" label="Telegram" primary wide
+        setValue={setMsgApp}
+        currValue={props.input.msgApp}
+        content={<ExportGuide msgApp="telegram" />} />
+      {/* <CollapseButton value="whatsapp" label="Whatsapp" primary wide
+        setValue={setMsgApp}
+        currValue={props.input.msgApp}
+        content={<ExportGuide msgApp="whatsapp" />} /> */}
     </div>
     <div className={styles["step-nav"]}>
       {props.input.msgApp &&
-        <Button primary onClick={() => props.setStep(2)}>Next</Button>
+        <Button primary wide onClick={() => props.setStep(2)}>Next</Button>
       }
     </div>
   </>;
@@ -92,21 +102,22 @@ const Step1 = (props: {
 
 const Step2 = (props: {
   setStep: Dispatch<SetStateAction<number>>;
-  input: InputFiles;
-  setInput: Dispatch<SetStateAction<InputFiles>>;
+  input: InputInfo;
+  setInput: Dispatch<SetStateAction<InputInfo>>;
 }) => {
   return <>
     <div className={styles["step-title"]}>Import</div>
     <div className={styles["step-subtitle"]}>Select your exported message history files.</div>
     <div className={styles["step-content"]}>
-      <input id="msgFileSelect" accept=".html" multiple type="file"
-        onChange={e => props.setInput((prev: InputFiles) => ({ ...prev, msgDataFiles: e.target.files }))} />
-      {props.input.msgDataFiles && <p>Click Next to start processing.</p>}
+      <FileDropInput id="msgFileSelect" accept=".html" multiple
+        setFiles={files => props.setInput((prev: InputInfo) => ({ ...prev, msgDataFiles: files }))} />
+      {(props.input.msgDataFiles && props.input.msgDataFiles.length > 0) && <p>Click Next to start processing.</p>}
+      {/* <input id="swFileSelect" accept=".txt" multiple type="file" ref={swFileDirRef} /> */}
     </div>
     <div className={styles["step-nav"]}>
       {
-        props.input.msgDataFiles &&
-        <Button primary onClick={() => props.setStep(3)}>Next</Button>
+        (props.input.msgDataFiles && props.input.msgDataFiles.length > 0) &&
+        <Button primary wide onClick={() => props.setStep(3)}>Next</Button>
       }
     </div>
   </>;
@@ -114,7 +125,7 @@ const Step2 = (props: {
 
 const Step3 = (props: {
   setStep: Dispatch<SetStateAction<number>>;
-  input: InputFiles;
+  input: InputInfo;
   setMsgFilesInput: Dispatch<SetStateAction<MsgFilesInput>>;
   msgDataStatus: ParseStatus;
   handleRestart: () => void;
@@ -174,8 +185,8 @@ const Step4 = (props: {
     <div className={styles["step-title"]}>View</div>
     <div className={styles["step-subtitle"]}>Process completed. The report is ready for viewing.</div>
     <div className={styles["step-nav"]}>
-      <Button primary href={`./#report`}>View Report</Button>
       <ButtonRestart handleRestart={props.handleRestart} />
+      <Button primary wide href={`./#report`}>View Report</Button>
     </div>
   </>;
 };
@@ -183,7 +194,7 @@ const Step4 = (props: {
 const ButtonRestart = (props: {
   handleRestart: () => void;
 }) => {
-  return <Button default onClick={props.handleRestart}>Restart</Button>;
+  return <Button default wide onClick={props.handleRestart}>Restart</Button>;
 };
 
 export default Start;

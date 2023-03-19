@@ -1,0 +1,31 @@
+@import "../../../App.scss";
+@import "../Button/Button.module.scss";
+
+.collapse {
+  @extend .button;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  &.primary.checked {
+    @extend %button-primary-focus;
+  }
+
+  &.secondary.checked {
+    @extend %button-secondary-focus;
+  }
+
+  &.default.checked {
+    @extend %button-default-focus;
+  }
+}
+
+.label {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.content {
+  font-size: medium;
+  font-weight: normal;
+}
