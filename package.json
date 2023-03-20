@@ -1,6 +1,7 @@
 {
   "name": "msgstats",
   "version": "0.1.0",
+  "homepage": "https://zqtay.github.io/msgstats",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
@@ -14,6 +15,7 @@
     "cheerio": "^1.0.0-rc.12",
     "class-transformer": "^0.5.1",
     "d3": "^7.8.0",
+    "gh-pages": "^5.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
@@ -26,7 +28,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
