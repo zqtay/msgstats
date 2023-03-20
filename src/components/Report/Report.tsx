@@ -120,6 +120,7 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
                 <DateInput date={dateRange[1]} setDate={(date: string) => setDate(date, "end")} />
               </div>
             </div>
+            <hr />
             <div className={styles["msgstats-charts"]}>
               {msgStats &&
                 <>
@@ -135,16 +136,19 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
                 </>
               }
             </div>
+            <hr />
             {hourlyMsg &&
               <ChartContainer title="Average Hourly Message Count">
                 <LineChart data={hourlyMsg} xTicks={24} xLabel={"Time of Day"} yLabel={"Number of Messages"} />
               </ChartContainer>
             }
+            <hr />
             {msgCount &&
               <ChartContainer title="Daily Message Count">
                 <CalHeatMap data={msgCount} />
               </ChartContainer>
             }
+            <hr />
             {wordFreq && <WordFreqTable title="Most Used Words" wordFreq={wordFreq} />}
           </Container>
         </section>

@@ -2,10 +2,17 @@
 
 .report-section {
   width: 100%;
+  padding: 20px 0px;
 }
 
 .report-container {
   display: block;
+  padding: 20px;
+  box-sizing: border-box;
+  border: 2px solid black;
+  border-radius: 10px;
+  background-color: white;
+  box-shadow: 5px 5px 0px 0px $color-shadow;
 }
 
 .report-title {
@@ -16,6 +23,7 @@
   text-align: center;
   position: sticky;
   top: 50px;
+  margin-top: -10px;
   padding: 10px 0 5px 0;
   color: #00000080;
   background-color: #FFFFFFE0;

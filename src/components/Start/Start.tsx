@@ -48,14 +48,12 @@ const Start = (props: { step: number; setStep: any; setReportData: any; setShowR
 
   return (
     <section id="start" className={styles["start-section"]}>
-      <Container>
-        <div className={styles["start"]}>
-          <ProgressBar value={step} min={1} max={4} tickValues={[1, 2, 3, 4]} tickLabels={["Select", "Import", "Process", "View"]} tickStyle="circle" />
-          {(step === 1) && <Step1 setStep={setStep} input={input} setInput={setInput} />}
-          {(step === 2) && <Step2 setStep={setStep} input={input} setInput={setInput} />}
-          {(step === 3) && <Step3 setStep={setStep} input={input} setMsgFilesInput={setMsgFilesInput} msgDataStatus={msgDataStatus} handleRestart={handleRestart} />}
-          {(step === 4) && <Step4 handleRestart={handleRestart} />}
-        </div>
+      <Container className={styles["start-container"]}>
+        <ProgressBar value={step} min={1} max={4} tickValues={[1, 2, 3, 4]} tickLabels={["Select", "Import", "Process", "View"]} tickStyle="circle" />
+        {(step === 1) && <Step1 setStep={setStep} input={input} setInput={setInput} />}
+        {(step === 2) && <Step2 setStep={setStep} input={input} setInput={setInput} />}
+        {(step === 3) && <Step3 setStep={setStep} input={input} setMsgFilesInput={setMsgFilesInput} msgDataStatus={msgDataStatus} handleRestart={handleRestart} />}
+        {(step === 4) && <Step4 handleRestart={handleRestart} />}
       </Container>
     </section>
   );

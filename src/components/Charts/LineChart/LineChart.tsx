@@ -19,7 +19,7 @@ const LineChart = (props: { data: SeriesData, xLabel?: string, yLabel?: string, 
         chartRef.current,
         setTooltipState,
         {
-          width: 1120,
+          width: 1080,
           height: 400,
           margin: 50,
           xLabel: props.xLabel,

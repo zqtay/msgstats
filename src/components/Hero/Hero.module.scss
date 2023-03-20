@@ -1,3 +1,5 @@
+@import "../../App.scss";
+
 .hero-section {
   height: 100vh;
   margin-top: -50px;
@@ -5,6 +7,11 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  /* Image source: https://www.pexels.com/photo/ethnic-female-using-phone-in-street-6084522/ */
+  /* Image credit: https://www.pexels.com/@keira-burton/ */
+  background-image: url("../../../public/hero.jpg");
+  background-position: center center;
+  background-size: cover;
 }
 
 .hero {
@@ -16,9 +23,14 @@
 }
 
 .hero-title {
+  color: white;
   font-size: 40px;
+  font-weight: bold;
+  text-shadow: 0 0 5px black;
 }
 
 .hero-subtitle {
+  color: white;
   font-size: 25px;
+  text-shadow: 0 0 5px black;
 }

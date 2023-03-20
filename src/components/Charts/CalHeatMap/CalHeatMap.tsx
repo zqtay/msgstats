@@ -42,7 +42,7 @@ const CalHeatMap = (
         x: d => d.date,
         y: d => d.values.reduce((a, b) => a + b),
         dataLabel: dataLabel,
-        width: 1120,
+        width: 1080,
         cellSize: 20,
         weekday: "sunday",
         colors: d3.interpolateRgb("#F0F0F0", "#F07080")
