@@ -6,6 +6,7 @@ import styles from "./Report.module.scss";
 import { ReactNode, useEffect, useState } from 'react';
 import LineChart from "../Charts/LineChart/LineChart";
 import Container from "../UI/Container/Container";
+import DateInput from "../UI/DateInput/DateInput";
 
 type SimpleData = { [key: string]: number; };
 type MsgStatsData = { [key: string]: { [key: string]: number; }; };
@@ -70,16 +71,16 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
     }
   };
 
-  const handleDateChange = (e: any, mode?: string) => {
+  const setDate = (date: string, mode?: string) => {
     if (props.msgData && mode) {
       const newDateRange = dateRange.slice();
       if (mode === "start") {
-        newDateRange[0] = e.target.value;
-        props.msgData.stats.setDateRange(e.target.value);
+        newDateRange[0] = date;
+        props.msgData.stats.setDateRange(date);
       }
       else if (mode === "end") {
-        newDateRange[1] = e.target.value;
-        props.msgData.stats.setDateRange(undefined, e.target.value);
+        newDateRange[1] = date;
+        props.msgData.stats.setDateRange(undefined, date);
       }
       setDateRange(newDateRange);
       getWordFreq();
@@ -101,23 +102,23 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
       else {
         title = `${userList[0]} & ${userList[1]} ${appName} `;
       }
-      return title + `Message Analysis Report`;
+      return title + `Message Statistics`;
     }
   };
 
   return (
     <>
       {props.show &&
-        <section id="report" className={styles["report"]}>
+        <section id="report" className={styles["report-section"]}>
           <Container className={styles["report-container"]}>
             <div className={styles["report-title"]}>
               {getReportTitle()}
-            </div>
-            <div className={styles["date-range"]}>
-              <span>From</span>
-              <input type="date" value={dateRange[0]} onChange={(e) => handleDateChange(e, "start")} />
-              <span>To</span>
-              <input type="date" value={dateRange[1]} onChange={(e) => handleDateChange(e, "end")} />
+              <div className={styles["date-range"]}>
+                <span>From</span>
+                <DateInput date={dateRange[0]} setDate={(date: string) => setDate(date, "start")} />
+                <span>To</span>
+                <DateInput date={dateRange[1]} setDate={(date: string) => setDate(date, "end")} />
+              </div>
             </div>
             <div className={styles["msgstats-charts"]}>
               {msgStats &&

@@ -1,5 +1,4 @@
 import { ChangeEvent, DragEvent, useRef, useState } from "react";
-import Button from "../Button/Button";
 import styles from "./FileDropInput.module.scss";
 
 const FileDropInput = (
@@ -22,7 +21,6 @@ const FileDropInput = (
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.files)
     props.setFiles(e.target.files);
     if (e.target.files === null) {
       setNumOfFiles(0);
