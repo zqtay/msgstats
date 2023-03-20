@@ -7,7 +7,7 @@ const Header = () => {
     <header>
       <Container className={styles.container}>
         <a className={styles["nav-brand"]} href="/">
-          <img className={styles["brand-logo"]} alt="logo" src={`/logo.png`}></img>
+          <img className={styles["brand-logo"]} alt="logo" src={process.env.PUBLIC_URL + "/logo.png"}></img>
           <span className={styles["brand-text"]}>MsgStats</span>
         </a>
         <div className={styles["nav-container"]}>
