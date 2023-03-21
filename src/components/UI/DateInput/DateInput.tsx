@@ -11,7 +11,7 @@ const DateInput = (props: {
     props.setDate(e.target.value);
   };
   return (
-    <div className={styles["box"]} onClick={() => dateInputRef.current?.showPicker()}>
+    <div className={styles["container"]} onClick={() => dateInputRef.current?.showPicker()}>
       {props.date}
       <input
         id={props.id}

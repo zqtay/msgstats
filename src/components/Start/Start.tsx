@@ -22,7 +22,7 @@ const guideLinks: { [key: string]: string; } = {
 const inputNull: InputInfo = { msgApp: "", msgDataFiles: null, stopWordsFiles: null };
 
 const Start = (props: { step: number; setStep: any; setReportData: any; setShowReport: any; }) => {
-  const [input, setInput] = useState<InputInfo>(inputNull);
+  const [inputInfo, setInputInfo] = useState<InputInfo>(inputNull);
 
   const [setMsgFilesInput, msgData, msgDataStatus, clearMsgDataStatus] = useMsgData();
   const [setSwFileList, stopWords, stopWordsStatus] = useStopWords();
@@ -41,18 +41,18 @@ const Start = (props: { step: number; setStep: any; setReportData: any; setShowR
 
   const handleRestart = useCallback(() => {
     clearMsgDataStatus();
-    setInput(inputNull);
+    setInputInfo(inputNull);
     setShowReport(false);
     setStep(1);
-  }, [clearMsgDataStatus, setInput, setShowReport, setStep]);
+  }, [clearMsgDataStatus, setInputInfo, setShowReport, setStep]);
 
   return (
     <section id="start" className={styles["start-section"]}>
       <Container className={styles["start-container"]}>
         <ProgressBar value={step} min={1} max={4} tickValues={[1, 2, 3, 4]} tickLabels={["Select", "Import", "Process", "View"]} tickStyle="circle" />
-        {(step === 1) && <Step1 setStep={setStep} input={input} setInput={setInput} />}
-        {(step === 2) && <Step2 setStep={setStep} input={input} setInput={setInput} />}
-        {(step === 3) && <Step3 setStep={setStep} input={input} setMsgFilesInput={setMsgFilesInput} msgDataStatus={msgDataStatus} handleRestart={handleRestart} />}
+        {(step === 1) && <Step1 setStep={setStep} info={inputInfo} setInfo={setInputInfo} />}
+        {(step === 2) && <Step2 setStep={setStep} info={inputInfo} setInfo={setInputInfo} />}
+        {(step === 3) && <Step3 setStep={setStep} info={inputInfo} setMsgFilesInput={setMsgFilesInput} msgDataStatus={msgDataStatus} handleRestart={handleRestart} />}
         {(step === 4) && <Step4 handleRestart={handleRestart} />}
       </Container>
     </section>
@@ -61,8 +61,8 @@ const Start = (props: { step: number; setStep: any; setReportData: any; setShowR
 
 const Step1 = (props: {
   setStep: Dispatch<SetStateAction<number>>;
-  input: InputInfo;
-  setInput: Dispatch<SetStateAction<InputInfo>>;
+  info: InputInfo;
+  setInfo: Dispatch<SetStateAction<InputInfo>>;
 }) => {
 
   const ExportGuide = (props: { msgApp: string; }) => {
@@ -70,12 +70,10 @@ const Step1 = (props: {
       Click the link to learn how to export message history.
       <br />
       <a href={guideLinks[props.msgApp]}>{guideLinks[props.msgApp]}</a>
-      <br />
-      If your message history (.html) files are ready, please proceed to the next step.
     </>;
   };
 
-  const setMsgApp = (msgApp: string) => props.setInput((prev: InputInfo) => ({ ...prev, msgApp: msgApp }));
+  const setMsgApp = (msgApp: string) => props.setInfo((prev: InputInfo) => ({ ...prev, msgApp: msgApp }));
 
   return <>
     <div className={styles["step-title"]}>Select</div>
@@ -83,96 +81,101 @@ const Step1 = (props: {
     <div className={`${styles["step-content"]} ${styles["app-selection"]}`}>
       <CollapseButton value="telegram" label="Telegram" primary wide
         setValue={setMsgApp}
-        currValue={props.input.msgApp}
+        currValue={props.info.msgApp}
         content={<ExportGuide msgApp="telegram" />} />
       {/* <CollapseButton value="whatsapp" label="Whatsapp" primary wide
         setValue={setMsgApp}
         currValue={props.input.msgApp}
         content={<ExportGuide msgApp="whatsapp" />} /> */}
-    </div>
-    <div className={styles["step-nav"]}>
-      {props.input.msgApp &&
-        <Button primary wide onClick={() => props.setStep(2)}>Next</Button>
+      {props.info.msgApp &&
+        <div>
+          If your message history (.html) files are ready, please proceed to the next step.
+        </div>
       }
     </div>
+    {props.info.msgApp &&
+      <div className={styles["step-nav"]}>
+        <Button primary wide onClick={() => props.setStep(2)}>Next</Button>
+      </div>
+    }
   </>;
 };
 
 const Step2 = (props: {
   setStep: Dispatch<SetStateAction<number>>;
-  input: InputInfo;
-  setInput: Dispatch<SetStateAction<InputInfo>>;
+  info: InputInfo;
+  setInfo: Dispatch<SetStateAction<InputInfo>>;
 }) => {
   return <>
     <div className={styles["step-title"]}>Import</div>
     <div className={styles["step-subtitle"]}>Select your exported message history files.</div>
     <div className={styles["step-content"]}>
       <FileDropInput id="msgFileSelect" accept=".html" multiple
-        setFiles={files => props.setInput((prev: InputInfo) => ({ ...prev, msgDataFiles: files }))} />
-      {(props.input.msgDataFiles && props.input.msgDataFiles.length > 0) && <p>Click Next to start processing.</p>}
+        setFiles={files => props.setInfo((prev: InputInfo) => ({ ...prev, msgDataFiles: files }))} />
+      {(props.info.msgDataFiles && props.info.msgDataFiles.length > 0) && <p>Click Next to start processing.</p>}
       {/* <input id="swFileSelect" accept=".txt" multiple type="file" ref={swFileDirRef} /> */}
     </div>
-    <div className={styles["step-nav"]}>
-      {
-        (props.input.msgDataFiles && props.input.msgDataFiles.length > 0) &&
+    {(props.info.msgDataFiles && props.info.msgDataFiles.length > 0) &&
+      <div className={styles["step-nav"]}>
         <Button primary wide onClick={() => props.setStep(3)}>Next</Button>
-      }
-    </div>
+      </div>
+    }
   </>;
 };
 
 const Step3 = (props: {
   setStep: Dispatch<SetStateAction<number>>;
-  input: InputInfo;
+  info: InputInfo;
   setMsgFilesInput: Dispatch<SetStateAction<MsgFilesInput>>;
   msgDataStatus: ParseStatus;
   handleRestart: () => void;
 }) => {
-  const max = (props.input.msgDataFiles) ? props.input.msgDataFiles.length : 0;
+  const {setStep, info, setMsgFilesInput, msgDataStatus, handleRestart} = props;
+  const max = (info.msgDataFiles) ? info.msgDataFiles.length : 0;
   const getParseProgress = useCallback((): number => {
-    const tmpStatus = props.msgDataStatus.state.split("_");
+    const tmpStatus = msgDataStatus.state.split("_");
     if (tmpStatus[0] === "parse") {
       let progNum = parseInt(tmpStatus[1]);
       return isNaN(progNum) ? 0 : progNum;
     }
-    else if (props.msgDataStatus.state === "success") {
+    else if (msgDataStatus.state === "success") {
       return max;
     }
     return 0;
-  }, [props.msgDataStatus, max]);
+  }, [msgDataStatus, max]);
 
   useEffect(() => {
-    if (props.input.msgApp && props.input.msgDataFiles) {
-      props.setMsgFilesInput({ app: props.input.msgApp, fileList: props.input.msgDataFiles });
+    if (info.msgApp && info.msgDataFiles) {
+      setMsgFilesInput({ app: info.msgApp, fileList: info.msgDataFiles });
     }
-  }, [props.input.msgApp, props.input.msgDataFiles]);
+  }, [info.msgApp, info.msgDataFiles, setMsgFilesInput]);
 
   useEffect(() => {
-    if (props.msgDataStatus.state === "success") {
-      props.setStep(4);
+    if (msgDataStatus.state === "success") {
+      setStep(4);
     }
-  }, [props.msgDataStatus.state]);
+  }, [msgDataStatus.state, setStep]);
 
   return <>
     <div className={styles["step-title"]}>Process</div>
     <div className={styles["step-subtitle"]}>
-      {props.msgDataStatus.state === "success" ? "Process complete." : "Processing ..."}
+      {msgDataStatus.state === "success" ? "Process complete." : "Processing ..."}
     </div>
     <div className={styles["step-content"]}>
-      {(props.msgDataStatus.state.split("_")[0] === "parse" || props.msgDataStatus.state === "success") &&
+      {(msgDataStatus.state.split("_")[0] === "parse" || msgDataStatus.state === "success") &&
         <ProgressBar value={getParseProgress()} max={max} />
       }
-      {props.msgDataStatus.error &&
+      {msgDataStatus.error &&
         <p>
-          {`Error: ${props.msgDataStatus.error} ${props.msgDataStatus.state}`}
+          {`Error: ${msgDataStatus.error} ${msgDataStatus.state}`}
         </p>
       }
     </div>
-    <div className={styles["step-nav"]}>
-      {props.msgDataStatus.error &&
-        <ButtonRestart handleRestart={props.handleRestart} />
-      }
-    </div>
+    {msgDataStatus.error &&
+      <div className={styles["step-nav"]}>
+        <ButtonRestart handleRestart={handleRestart} />
+      </div>
+    }
   </>;
 };
 
@@ -192,7 +195,7 @@ const Step4 = (props: {
 const ButtonRestart = (props: {
   handleRestart: () => void;
 }) => {
-  return <Button default wide onClick={props.handleRestart}>Restart</Button>;
+  return <Button wide onClick={props.handleRestart}>Restart</Button>;
 };
 
 export default Start;

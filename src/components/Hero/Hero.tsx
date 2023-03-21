@@ -13,7 +13,7 @@ const Hero = (props: {}) => {
           <div className={styles["hero-subtitle"]}>
             Transform your message history into meaningful stories.
           </div>
-          <Button default href={`./#start`}>Start</Button>
+          <Button href={`./#start`}>Start</Button>
         </div>
       </Container>
     </section>
