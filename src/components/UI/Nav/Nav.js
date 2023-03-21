@@ -1,8 +1,8 @@
 import styles from "./Nav.module.scss";
 
 const navItems = [
-  {text: "Home", link: `/`},
-  {text: "Report", link: `/#report`}
+  {text: "Home", link: `${process.env.PUBLIC_URL}/#`},
+  {text: "Report", link: `${process.env.PUBLIC_URL}/#report`}
 ];
 
 const Nav = ({className}) => {
