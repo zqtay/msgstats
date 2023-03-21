@@ -1,0 +1,41 @@
+@import "../../../App.scss";
+
+.container {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.input {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: $color-transparent;
+  display: grid;
+  place-content: center;
+  margin: 0;
+  width: 1.2em;
+  height: 1.2em;
+  border: 2px solid $color-highlight1;
+  border-radius: 4px;
+  cursor: pointer;
+  @include transition-default(all);
+
+  &:checked,
+  &:hover {
+    border: 2px solid $color-primary2;
+  }
+
+  &::before {
+    content: "";
+    width: 0.6em;
+    height: 0.6em;
+    border-radius: 2px;
+    transform: scale(0);
+    background-color: $color-primary2;
+    // @include transition-default(transform);
+  }
+
+  &:checked::before {
+    transform: scale(1);
+  }
+}

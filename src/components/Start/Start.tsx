@@ -8,6 +8,7 @@ import useStopWords from '../../feature/message-stats/hooks/useStopWords';
 import styles from "./Start.module.scss";
 import CollapseButton from "../UI/CollapseButton/CollapseButton";
 import FileDropInput from "../UI/FileDropInput/FileDropInput";
+import CheckBoxInput from "../UI/CheckBoxInput/CheckBoxInput";
 
 type InputInfo = {
   msgApp: string;
@@ -23,6 +24,7 @@ const inputNull: InputInfo = { msgApp: "", msgDataFiles: null, stopWordsFiles: n
 
 const Start = (props: { step: number; setStep: any; setReportData: any; setShowReport: any; }) => {
   const [inputInfo, setInputInfo] = useState<InputInfo>(inputNull);
+  const [isUseStopWords, setIsUseStopWords] = useState(false);
 
   const [setMsgFilesInput, msgData, msgDataStatus, clearMsgDataStatus] = useMsgData();
   const [setSwFileList, stopWords, stopWordsStatus] = useStopWords();
@@ -51,8 +53,9 @@ const Start = (props: { step: number; setStep: any; setReportData: any; setShowR
       <Container className={styles["start-container"]}>
         <ProgressBar value={step} min={1} max={4} tickValues={[1, 2, 3, 4]} tickLabels={["Select", "Import", "Process", "View"]} tickStyle="circle" />
         {(step === 1) && <Step1 setStep={setStep} info={inputInfo} setInfo={setInputInfo} />}
-        {(step === 2) && <Step2 setStep={setStep} info={inputInfo} setInfo={setInputInfo} />}
-        {(step === 3) && <Step3 setStep={setStep} info={inputInfo} setMsgFilesInput={setMsgFilesInput} msgDataStatus={msgDataStatus} handleRestart={handleRestart} />}
+        {(step === 2) && <Step2 setStep={setStep} info={inputInfo} setInfo={setInputInfo} isUseSW={isUseStopWords} setIsUseSW={setIsUseStopWords} />}
+        {(step === 3) && <Step3 setStep={setStep} info={inputInfo} setMsgFilesInput={setMsgFilesInput} msgDataStatus={msgDataStatus}
+          isUseSW={isUseStopWords} setSwFileList={setSwFileList} handleRestart={handleRestart} />}
         {(step === 4) && <Step4 handleRestart={handleRestart} />}
       </Container>
     </section>
@@ -105,15 +108,25 @@ const Step2 = (props: {
   setStep: Dispatch<SetStateAction<number>>;
   info: InputInfo;
   setInfo: Dispatch<SetStateAction<InputInfo>>;
+  isUseSW: boolean;
+  setIsUseSW: Dispatch<SetStateAction<boolean>>;
 }) => {
+
   return <>
     <div className={styles["step-title"]}>Import</div>
     <div className={styles["step-subtitle"]}>Select your exported message history files.</div>
     <div className={styles["step-content"]}>
-      <FileDropInput id="msgFileSelect" accept=".html" multiple
-        setFiles={files => props.setInfo((prev: InputInfo) => ({ ...prev, msgDataFiles: files }))} />
+      <div className={styles["justify-between"]}>
+        <span>{props.isUseSW && `Message files`}</span>
+        <CheckBoxInput id="isUsingStopWords" label="Use stop words" checked={props.isUseSW} setChecked={props.setIsUseSW} />
+      </div>
+      <div className={styles["file-inputs"]}>
+        <FileDropInput id="msgFileSelect" accept=".html" multiple
+          setFiles={files => props.setInfo((prev: InputInfo) => ({ ...prev, msgDataFiles: files }))} />
+        {props.isUseSW && <FileDropInput id="swFileSelect" accept=".txt" multiple
+          setFiles={files => props.setInfo((prev: InputInfo) => ({ ...prev, stopWordsFiles: files }))} />}
+      </div>
       {(props.info.msgDataFiles && props.info.msgDataFiles.length > 0) && <p>Click Next to start processing.</p>}
-      {/* <input id="swFileSelect" accept=".txt" multiple type="file" ref={swFileDirRef} /> */}
     </div>
     {(props.info.msgDataFiles && props.info.msgDataFiles.length > 0) &&
       <div className={styles["step-nav"]}>
@@ -128,9 +141,11 @@ const Step3 = (props: {
   info: InputInfo;
   setMsgFilesInput: Dispatch<SetStateAction<MsgFilesInput>>;
   msgDataStatus: ParseStatus;
+  isUseSW: boolean;
+  setSwFileList: Dispatch<SetStateAction<FileList | null>>;
   handleRestart: () => void;
 }) => {
-  const {setStep, info, setMsgFilesInput, msgDataStatus, handleRestart} = props;
+  const { setStep, info, setMsgFilesInput, msgDataStatus, handleRestart } = props;
   const max = (info.msgDataFiles) ? info.msgDataFiles.length : 0;
   const getParseProgress = useCallback((): number => {
     const tmpStatus = msgDataStatus.state.split("_");
@@ -147,6 +162,9 @@ const Step3 = (props: {
   useEffect(() => {
     if (info.msgApp && info.msgDataFiles) {
       setMsgFilesInput({ app: info.msgApp, fileList: info.msgDataFiles });
+      if (info.stopWordsFiles) {
+        props.setSwFileList(info.stopWordsFiles);
+      }
     }
   }, [info.msgApp, info.msgDataFiles, setMsgFilesInput]);
 
