@@ -131,12 +131,12 @@ function Calendar(data: any[], calRef, setTooltipState, {
   const yearFixed = fixed.selectAll("g")
     .data(years)
     .join("g")
-    .attr("transform", (d, i) => `translate(40.5,${height * i + cellSize * 1.5})`);
+    .attr("transform", (d, i) => `translate(45,${height * i + cellSize * 1.5})`);
 
   const year = svg.selectAll("g")
     .data(years)
     .join("g")
-    .attr("transform", (d, i) => `translate(40.5,${height * i + cellSize * 1.5})`);
+    .attr("transform", (d, i) => `translate(10,${height * i + cellSize * 1.5})`);
 
   yearFixed.append("text")
     .attr("x", -5)

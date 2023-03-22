@@ -1,10 +1,12 @@
 import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import MsgData from "../MsgData";
 import Parser, { ParseStatus } from "../Parser";
+import SampleData from "../SampleData";
 
 export type MsgFilesInput = {
   app: string;
   fileList: FileList | null;
+  useSample: boolean;
 };
 
 const statusDefault = { state: "", error: "" };
@@ -15,7 +17,7 @@ const useMsgData = (): [
   ParseStatus,
   () => void,
 ] => {
-  const [msgFilesInput, setMsgFilesInput] = useState<MsgFilesInput>({app: "", fileList: null});
+  const [msgFilesInput, setMsgFilesInput] = useState<MsgFilesInput>({ app: "", fileList: null, useSample: false });
   const [msgData, setMsgData] = useState<MsgData | null>(null);
   const [status, setStatus] = useState<ParseStatus>(statusDefault);
 
@@ -37,17 +39,21 @@ const useMsgData = (): [
       return;
     }
 
-    if (msgFilesInput.fileList === null || msgFilesInput.fileList.length === 0) {
-      setMsgData(null);
-      setParseError("no_file");
-      return;
-    }
-
     setParseState("parse_start");
 
     try {
       if (msgFilesInput.app === "telegram") {
-        msgDataText = await Parser.parseTelegramMsg(msgFilesInput.fileList, setParseState);
+        if (msgFilesInput.useSample) {
+          msgDataText = SampleData.generate(msgFilesInput.app);
+        }
+        else if (msgFilesInput.fileList) {
+          msgDataText = await Parser.parseTelegramMsg(msgFilesInput.fileList, setParseState);
+        }
+        else {
+          setMsgData(null);
+          setParseError("no_file");
+          return;
+        }
       }
       else {
         setMsgData(null);

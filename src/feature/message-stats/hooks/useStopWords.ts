@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import Parser from "../Parser";
 import StopWords from "../StopWords";
 
@@ -11,7 +11,7 @@ const useStopWords = (): [
   const [stopWords, setStopWords] = useState<StopWords | null>(null);
   const [status, setStatus] = useState<string>("");
 
-  const init = async () => {
+  const init = useCallback(async () => {
     let stopWordsText: string;
 
     if (swFileList === null || swFileList.length === 0) {
@@ -44,11 +44,11 @@ const useStopWords = (): [
     setStopWords(prevState => newStopWords);
 
     setStatus(prevState => "success");
-  };
+  }, [swFileList]);
 
   useEffect(() => {
     init();
-  }, [swFileList]);
+  }, [init]);
 
   return [setSwFileList, stopWords, status];
 };
