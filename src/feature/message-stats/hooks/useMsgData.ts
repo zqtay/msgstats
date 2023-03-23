@@ -6,7 +6,6 @@ import SampleData from "../SampleData";
 export type MsgFilesInput = {
   app: string;
   fileList: FileList | null;
-  useSample: boolean;
 };
 
 const statusDefault = { state: "", error: "" };
@@ -17,7 +16,7 @@ const useMsgData = (): [
   ParseStatus,
   () => void,
 ] => {
-  const [msgFilesInput, setMsgFilesInput] = useState<MsgFilesInput>({ app: "", fileList: null, useSample: false });
+  const [msgFilesInput, setMsgFilesInput] = useState<MsgFilesInput>({ app: "", fileList: null });
   const [msgData, setMsgData] = useState<MsgData | null>(null);
   const [status, setStatus] = useState<ParseStatus>(statusDefault);
 
@@ -39,14 +38,21 @@ const useMsgData = (): [
       return;
     }
 
+    if (msgFilesInput.app !== "sample") {
+      if (msgFilesInput.fileList === null || msgFilesInput.fileList.length === 0) {
+        setMsgData(null);
+        setParseError("no_file");
+        return;
+      }
+    }
     setParseState("parse_start");
 
     try {
-      if (msgFilesInput.app === "telegram") {
-        if (msgFilesInput.useSample) {
-          msgDataText = SampleData.generate(msgFilesInput.app);
-        }
-        else if (msgFilesInput.fileList) {
+      if (msgFilesInput.app === "sample") {
+          msgDataText = SampleData.generate();
+      }
+      else if (msgFilesInput.app === "telegram") {
+        if (msgFilesInput.fileList) {
           msgDataText = await Parser.parseTelegramMsg(msgFilesInput.fileList, setParseState);
         }
         else {

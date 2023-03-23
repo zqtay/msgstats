@@ -73,6 +73,9 @@ class MsgData {
       case "telegram":
         appName = "Telegram";
         break;
+      case "sample":
+        appName = "Sample";
+        break;
     }
     return appName;
   }

@@ -29,7 +29,7 @@ class SampleData {
       do {
         // Is generated word already exist
         const newWord = this.genWord(this.MAX_WORD_LEN);
-        isWordExist = wordList.some(v => (v.word === newWord))
+        isWordExist = wordList.some(v => (v.word === newWord));
         word = newWord;
       } while (isWordExist);
       wordList.push({ word: word, freq: Math.random() });
@@ -95,29 +95,27 @@ class SampleData {
     return texts;
   };
 
-  public static generate = (app: string, textsLen: number = 1000): string => {
+  public static generate = (textsLen: number = 1000): string => {
     let msgDataText: string = "";
-    if (app === "telegram") {
-      const texts = this.genTexts(textsLen);
-      const datePeriod = this.dateEnd - this.dateStart;
-      let freq: number;
-      let user: string;
-      let date: any;
-      let dateString: string;
-      const data = texts.map(text => {
-        freq = Math.random();
-        user = (freq > 0.5) ? this.userList[0] : this.userList[1];
-        date = this.dateStart + Math.floor(Math.random() * datePeriod);
-        // 2022-01-02T12:34:56.505Z
-        date = (new Date(date)).toISOString().split("T");
-        dateString = `${date[1].split(".")[0]} UTC+00:00`;
-        date = date[0].split("-");
-        // 02.01.2022 12:34:56 UTC+00:00
-        dateString = `${date[2]}.${date[1]}.${date[0]} ${dateString}`;
-        return `${dateString},${user},${text}`;
-      });
-      msgDataText = `app=${app}\nmsgTarget=${this.userList[1]}\n${data.join("\n")}`;
-    }
+    const texts = this.genTexts(textsLen);
+    const datePeriod = this.dateEnd - this.dateStart;
+    let freq: number;
+    let user: string;
+    let date: any;
+    let dateString: string;
+    const data = texts.map(text => {
+      freq = Math.random();
+      user = (freq > 0.5) ? this.userList[0] : this.userList[1];
+      date = this.dateStart + Math.floor(Math.random() * datePeriod);
+      // 2022-01-02T12:34:56.505Z
+      date = (new Date(date)).toISOString().split("T");
+      dateString = `${date[1].split(".")[0]} UTC+00:00`;
+      date = date[0].split("-");
+      // 02.01.2022 12:34:56 UTC+00:00
+      dateString = `${date[2]}.${date[1]}.${date[0]} ${dateString}`;
+      return `${dateString},${user},${text}`;
+    });
+    msgDataText = `app=sample\nmsgTarget=${this.userList[1]}\n${data.join("\n")}`;
     return msgDataText;
   };
 }
