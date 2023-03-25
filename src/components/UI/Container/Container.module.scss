@@ -1,33 +1,34 @@
 @import "../../../App.scss";
 
 .container {
-  width: 300px;
+  width: auto;
   margin: 0 auto;
 }
 
 /* Breakpoints */
-@media (min-width: #{$grid-breakpoints-sm}){
+@media (max-width: #{$grid-breakpoints-md}){
   .container {
-    width: #{$grid-breakpoints-xs};
+    width: auto;
+    margin: 0 12px;
   }
 }
-@media (min-width: #{$grid-breakpoints-md}){
+@media (min-width: $grid-breakpoints-md){
   .container {
-    width: #{$grid-breakpoints-sm};
+    width: $grid-breakpoints-sm;
   }
 }
-@media (min-width: #{$grid-breakpoints-lg}){
+@media (min-width: $grid-breakpoints-lg){
   .container {
-    width: #{$grid-breakpoints-md};
+    width: $grid-breakpoints-md;
   }
 }
-@media (min-width: #{$grid-breakpoints-xl}) {
+@media (min-width: $grid-breakpoints-xl) {
   .container {
-    width: #{$grid-breakpoints-lg};
+    width: $grid-breakpoints-lg;
   }
 }
-@media (min-width: #{$grid-breakpoints-xxl}) {
+@media (min-width: $grid-breakpoints-xxl) {
   .container {
-    width: #{$grid-breakpoints-xl};
+    width: $grid-breakpoints-xl;
   }
 }
