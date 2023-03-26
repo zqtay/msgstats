@@ -1,14 +1,18 @@
 import { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
+
+import { ParseStatus } from "../../feature/message-stats/Parser";
+import useMsgData from '../../feature/message-stats/hooks/useMsgData';
+import useStopWords from '../../feature/message-stats/hooks/useStopWords';
+import useMsgStats from "../../feature/message-stats/hooks/useMsgStats";
+
 import Button from "../UI/Button/Button";
 import Container from "../UI/Container/Container";
 import ProgressBar from "../UI/ProgressBar/ProgressBar";
-import { ParseStatus } from "../../feature/message-stats/Parser";
-import useMsgData, { MsgFilesInput } from '../../feature/message-stats/hooks/useMsgData';
-import useStopWords from '../../feature/message-stats/hooks/useStopWords';
-import styles from "./Start.module.scss";
 import CollapseButton from "../UI/CollapseButton/CollapseButton";
 import FileDropInput from "../UI/FileDropInput/FileDropInput";
 import CheckBoxInput from "../UI/CheckBoxInput/CheckBoxInput";
+
+import styles from "./Start.module.scss";
 
 type InputInfo = {
   msgApp: string;
@@ -25,28 +29,47 @@ const inputNull: InputInfo = { msgApp: "", msgFiles: null, swFiles: null };
 const Start = (props: { step: number; setStep: any; setReportData: any; setShowReport: any; }) => {
   const [inputInfo, setInputInfo] = useState<InputInfo>(inputNull);
   const [isUseStopWords, setIsUseStopWords] = useState(false);
-
   const [setMsgFilesInput, msgData, msgDataStatus, clearMsgDataStatus] = useMsgData();
+  const [setMsgData, msgStats, msgStatsStatus, clearMsgStatsStatus] = useMsgStats();
   const [setSwFileList, stopWords, stopWordsStatus] = useStopWords();
 
   const { step, setStep, setReportData, setShowReport } = props;
 
   useEffect(() => {
     if (msgDataStatus.state === "success") {
-      setReportData((prev: any) => ({ ...prev, msgData: msgData }));
+      setReportData((prev: any) => ({ ...prev, msgStats: msgStats }));
       setShowReport(true);
     }
     if (stopWordsStatus === "success") {
       setReportData((prev: any) => ({ ...prev, stopWords: stopWords }));
     }
-  }, [msgDataStatus, stopWordsStatus, msgData, setReportData, setShowReport, stopWords]);
+  }, [msgDataStatus, stopWordsStatus, msgStats, setReportData, setShowReport, stopWords]);
 
   const handleRestart = useCallback(() => {
     clearMsgDataStatus();
+    clearMsgStatsStatus();
     setInputInfo(inputNull);
     setShowReport(false);
     setStep(1);
-  }, [clearMsgDataStatus, setInputInfo, setShowReport, setStep]);
+  }, [clearMsgDataStatus, clearMsgStatsStatus, setInputInfo, setShowReport, setStep]);
+
+  const startProcessData = useCallback(() => {
+    if (inputInfo.msgApp) {
+      if (inputInfo.msgApp === "sample") {
+        setMsgFilesInput({ app: inputInfo.msgApp, fileList: null });
+      }
+      else if (inputInfo.msgFiles) {
+        setMsgFilesInput({ app: inputInfo.msgApp, fileList: inputInfo.msgFiles });
+        if (inputInfo.swFiles) {
+          setSwFileList(inputInfo.swFiles);
+        }
+      }
+    }
+  }, [inputInfo, setMsgFilesInput, setSwFileList]);
+
+  const startProcessStats = useCallback(() => {
+    setMsgData(msgData);
+  }, [setMsgData, msgData]);
 
   return (
     <section id="start" className={styles["start-section"]}>
@@ -55,14 +78,15 @@ const Start = (props: { step: number; setStep: any; setReportData: any; setShowR
         {(step === 1) && <Step1 setStep={setStep} info={inputInfo} setInfo={setInputInfo} />}
         {(step === 2) && <Step2 setStep={setStep} info={inputInfo} setInfo={setInputInfo}
           isUseSW={isUseStopWords} setIsUseSW={setIsUseStopWords} />}
-        {(step === 3) && <Step3 setStep={setStep} info={inputInfo} setMsgFilesInput={setMsgFilesInput} msgDataStatus={msgDataStatus}
-          setSwFileList={setSwFileList} handleRestart={handleRestart} />}
+        {(step === 3) && <Step3 setStep={setStep} info={inputInfo} processData={startProcessData} dataStatus={msgDataStatus}
+          processStats={startProcessStats} statsStatus={msgStatsStatus} handleRestart={handleRestart} />}
         {(step === 4) && <Step4 handleRestart={handleRestart} />}
       </Container>
     </section>
   );
 };
 
+// Select app
 const Step1 = (props: {
   setStep: Dispatch<SetStateAction<number>>;
   info: InputInfo;
@@ -121,6 +145,7 @@ const Step1 = (props: {
   </>;
 };
 
+// Import files
 const Step2 = (props: {
   setStep: Dispatch<SetStateAction<number>>;
   info: InputInfo;
@@ -154,65 +179,66 @@ const Step2 = (props: {
   </>;
 };
 
+// Process files
 const Step3 = (props: {
   setStep: Dispatch<SetStateAction<number>>;
   info: InputInfo;
-  setMsgFilesInput: Dispatch<SetStateAction<MsgFilesInput>>;
-  msgDataStatus: ParseStatus;
-  setSwFileList: Dispatch<SetStateAction<FileList | null>>;
+  processData: () => void;
+  dataStatus: ParseStatus;
+  processStats: () => void;
+  statsStatus: string;
   handleRestart: () => void;
 }) => {
-  const { setStep, info, setMsgFilesInput, msgDataStatus, setSwFileList, handleRestart } = props;
+  const { setStep, info, processData, dataStatus, processStats, statsStatus, handleRestart } = props;
   const max = (info.msgFiles) ? info.msgFiles.length : 0;
   const getParseProgress = useCallback((): number => {
-    const tmpStatus = msgDataStatus.state.split("_");
+    const tmpStatus = dataStatus.state.split("_");
     if (tmpStatus[0] === "parse") {
       let progNum = parseInt(tmpStatus[1]);
       return isNaN(progNum) ? 0 : progNum;
     }
-    else if (msgDataStatus.state === "success") {
+    else if (dataStatus.state === "success") {
       return max;
     }
     return 0;
-  }, [msgDataStatus, max]);
+  }, [dataStatus, max]);
 
   useEffect(() => {
-    if (info.msgApp) {
-      if (info.msgApp === "sample") {
-        setMsgFilesInput({ app: info.msgApp, fileList: null });
-      }
-      else if (info.msgFiles) {
-        setMsgFilesInput({ app: info.msgApp, fileList: info.msgFiles });
-        if (info.swFiles) {
-          setSwFileList(info.swFiles);
-        }
-      }
+    processData();
+  }, [processData]);
+
+  useEffect(() => {
+    if (dataStatus.state === "success") {
+      processStats();
     }
-  }, [info, setMsgFilesInput, setSwFileList]);
+  }, [dataStatus.state, processStats]);
 
   useEffect(() => {
-    if (msgDataStatus.state === "success") {
+    if (statsStatus === "success") {
       setStep(4);
     }
-  }, [msgDataStatus.state, setStep]);
+  }, [statsStatus, setStep]);
 
   return <>
     <div className={styles["step-title"]}>Process</div>
     <div className={styles["step-subtitle"]}>
-      {msgDataStatus.state === "success" ? "Process complete." : "Processing ..."}
+      {dataStatus.state === "success" ?
+        statsStatus === "success" ? "Process complete." : "Initializing..."
+        : "Processing..."
+      }
     </div>
     <div className={styles["step-content"]}>
       {(info.msgApp !== "sample") &&
-        (msgDataStatus.state.split("_")[0] === "parse" || msgDataStatus.state === "success") &&
+        (dataStatus.state.split("_")[0] === "parse" || dataStatus.state === "success") &&
         <ProgressBar value={getParseProgress()} max={max} />
       }
-      {msgDataStatus.error &&
+      {dataStatus.error &&
         <p>
-          {`Error: ${msgDataStatus.error} ${msgDataStatus.state}`}
+          {`Error: ${dataStatus.error} ${dataStatus.state}`}
         </p>
       }
     </div>
-    {msgDataStatus.error &&
+    {dataStatus.error &&
       <div className={styles["step-nav"]}>
         <ButtonRestart handleRestart={handleRestart} />
       </div>
@@ -220,6 +246,7 @@ const Step3 = (props: {
   </>;
 };
 
+// Success
 const Step4 = (props: {
   handleRestart: () => void;
 }) => {

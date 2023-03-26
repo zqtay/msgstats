@@ -1,108 +1,131 @@
+import { ReactNode, useEffect, useState } from 'react';
+
+import MsgStats, { DailyCount, WordFreqList } from "../../feature/message-stats/MsgStats";
+import MsgStatsStatic, { MsgStatsObject } from "../../feature/message-stats/MsgStatsStatic";
+import StopWords from "../../feature/message-stats/StopWords";
+import Util from "../../feature/message-stats/Util";
+
 import CalHeatMap from "../Charts/CalHeatMap/CalHeatMap";
 import DonutChart from "../Charts/DonutChart/DonutChart";
-import MsgData from "../../feature/message-stats/MsgData";
-import StopWords from "../../feature/message-stats/StopWords";
-import styles from "./Report.module.scss";
-import { ReactNode, useEffect, useState } from 'react';
 import LineChart from "../Charts/LineChart/LineChart";
+import Button from "../UI/Button/Button";
 import Container from "../UI/Container/Container";
 import DateInput from "../UI/DateInput/DateInput";
 
+import styles from "./Report.module.scss";
+
 type SimpleData = { [key: string]: number; };
 type MsgStatsData = { [key: string]: { [key: string]: number; }; };
-type WordFreqData = { [key: string]: { [key: string]: number; }[]; };
-type HourlyMsgData = { [key: string]: [number, number][]; };
+type HourlyCount = { [key: string]: [number, number][]; };
 
-const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: StopWords | null; }) => {
+const Report = (props: { show: boolean, msgStats: MsgStats | null, stopWords: StopWords | null; }) => {
 
-  const [msgCount, setMsgCount] = useState<MsgStatsData | null>(null);
-  const [msgStats, setMsgStats] = useState<MsgStatsData | null>(null);
-  const [wordFreq, setWordFreq] = useState<WordFreqData | null>(null);
-  const [hourlyMsg, setHourlyMsg] = useState<HourlyMsgData | null>(null);
+  const [hourlyCount, setHourlyCount] = useState<HourlyCount | null>(null);
+  const [dailyCount, setDailyCount] = useState<DailyCount | null>(null);
+  const [totalStats, setTotalStats] = useState<MsgStatsData | null>(null);
+  const [wordFreq, setWordFreq] = useState<WordFreqList | null>(null);
   const [dateRange, setDateRange] = useState<string[]>(["", ""]);
 
   useEffect(() => {
-    if (props.show && props.msgData) {
-      getWordFreq();
-      getMsgCount();
-      getMsgStats();
+    if (props.show && props.msgStats) {
+      getMostUsedWords();
+      getDailyCount();
+      getTotalCountStats();
       getHourlyMsg();
-      setDateRange(props.msgData.stats.getDateRange());
+      setDateRange(props.msgStats.getDateRange());
     }
-  }, [props.show, props.msgData, props.stopWords]);
+  }, [props.show, props.msgStats, props.stopWords]);
 
-  const getWordFreq = () => {
-    if (props.msgData) {
-      let wordFreq1 = props.msgData.stats.getMostUsedWords(20, props.stopWords?.check.bind(props.stopWords));
+  const getMostUsedWords = () => {
+    if (props.msgStats) {
+      let wordFreq1 = props.msgStats.getMostUsedWords(100, props.stopWords?.check.bind(props.stopWords));
       setWordFreq(wordFreq1);
     }
   };
 
-  const getMsgCount = () => {
-    if (props.msgData) {
-      let msgCount1 = props.msgData.stats.getDailyMsgCount();
-      setMsgCount(msgCount1);
+  const getDailyCount = () => {
+    if (props.msgStats) {
+      let msgCount1 = props.msgStats.getDailyMsgCount();
+      setDailyCount(msgCount1);
     }
   };
 
-  const getMsgStats = () => {
-    if (props.msgData) {
-      let stats = props.msgData.stats.getMsgStats();
+  const getTotalCountStats = () => {
+    if (props.msgStats) {
+      let stats = props.msgStats.getTotalCountStats();
       let totMsgCount: SimpleData = {};
       let totCharCount: SimpleData = {};
       let avgCharCountPerMsg: SimpleData = {};
       Object.keys(stats).forEach(name => totMsgCount[name] = stats[name]["totMsgCount"]);
       Object.keys(stats).forEach(name => totCharCount[name] = stats[name]["totCharCount"]);
       Object.keys(stats).forEach(name => avgCharCountPerMsg[name] = stats[name]["avgCharCountPerMsg"]);
-      setMsgStats(prev => ({ ...prev, totMsgCount: totMsgCount }));
-      setMsgStats(prev => ({ ...prev, totCharCount: totCharCount }));
-      setMsgStats(prev => ({ ...prev, avgCharCountPerMsg: avgCharCountPerMsg }));
+      setTotalStats(prev => ({ ...prev, totMsgCount: totMsgCount }));
+      setTotalStats(prev => ({ ...prev, totCharCount: totCharCount }));
+      setTotalStats(prev => ({ ...prev, avgCharCountPerMsg: avgCharCountPerMsg }));
     }
   };
 
   const getHourlyMsg = () => {
-    if (props.msgData) {
-      let stats = props.msgData.stats.getHourlyMsgCount();
-      const formattedData: HourlyMsgData = {};
+    if (props.msgStats) {
+      let stats = props.msgStats.getHourlyMsgCount();
+      const formattedData: HourlyCount = {};
       Object.entries(stats).forEach(e => {
         formattedData[e[0]] = e[1].map((y, x) => [x, y]);
       });
-      setHourlyMsg(formattedData);
+      setHourlyCount(formattedData);
     }
   };
 
   const setDate = (date: string, mode?: string) => {
-    if (props.msgData && mode) {
+    if (props.msgStats && mode) {
+      // Copy date range
       const newDateRange = dateRange.slice();
       if (mode === "start") {
         newDateRange[0] = date;
-        props.msgData.stats.setDateRange(date);
+        props.msgStats.setDateRange(date);
       }
       else if (mode === "end") {
         newDateRange[1] = date;
-        props.msgData.stats.setDateRange(undefined, date);
+        props.msgStats.setDateRange(undefined, date);
       }
       setDateRange(newDateRange);
-      getWordFreq();
-      getMsgCount();
-      getMsgStats();
+      // Re-render report data
+      getMostUsedWords();
+      getDailyCount();
+      getTotalCountStats();
       getHourlyMsg();
     }
   };
 
   const getReportTitle = () => {
-    if (props.msgData) {
-      const appName = props.msgData.getAppName();
-      const msgTarget = props.msgData.getMsgTarget();
-      const userList = props.msgData.getUserList();
-      let title: string;
-      if (msgTarget !== "" && msgTarget !== userList[0] && msgTarget !== userList[1]) {
-        title = `${msgTarget} ${appName} `;
-      }
-      else {
-        title = `${userList[0]} & ${userList[1]} ${appName} `;
-      }
-      return title + `Message Statistics`;
+    if (props.msgStats) {
+      return props.msgStats.getReportTitle();
+    }
+  };
+
+  const postData = async () => {
+    if (props.msgStats && dailyCount && wordFreq && totalStats) {
+      const temp: MsgStatsObject = {
+        hourlyCount: props.msgStats.getHourlyMsgCount(),
+        dailyCount: dailyCount,
+        mostUsedWords: wordFreq,
+        totalCountStats: props.msgStats.getTotalCountStats(),
+        reportTitle: props.msgStats.getReportTitle(),
+        dateRange: dateRange,
+      };
+      const body = JSON.stringify(new MsgStatsStatic(temp));
+      const id = Util.genHexString(16);
+      const rawResponse = await fetch(`http://localhost:8000/test/${id}`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: body
+      });
+      const content = await rawResponse.json();
+      console.log(content);
+      console.log(id)
     }
   };
 
@@ -120,32 +143,33 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
                 <DateInput date={dateRange[1]} setDate={(date: string) => setDate(date, "end")} />
               </div>
             </div>
+            <Button primary wide onClick={postData}>Share</Button>
             <hr />
             <div className={styles["msgstats-charts"]}>
-              {msgStats &&
+              {totalStats &&
                 <>
                   <ChartContainer title="Total Message Count">
-                    <DonutChart data={msgStats.totMsgCount} />
+                    <DonutChart data={totalStats.totMsgCount} />
                   </ChartContainer>
                   <ChartContainer title="Total Character Count">
-                    <DonutChart data={msgStats.totCharCount} />
+                    <DonutChart data={totalStats.totCharCount} />
                   </ChartContainer>
                   <ChartContainer title="Average Character Count Per Message">
-                    <DonutChart data={msgStats.avgCharCountPerMsg} />
+                    <DonutChart data={totalStats.avgCharCountPerMsg} />
                   </ChartContainer>
                 </>
               }
             </div>
             <hr />
-            {hourlyMsg &&
+            {hourlyCount &&
               <ChartContainer title="Average Hourly Message Count">
-                <LineChart data={hourlyMsg} xTicks={24} xLabel={"Time of Day"} yLabel={"Number of Messages"} />
+                <LineChart data={hourlyCount} xTicks={24} xLabel={"Time of Day"} yLabel={"Number of Messages"} />
               </ChartContainer>
             }
             <hr />
-            {msgCount &&
+            {dailyCount &&
               <ChartContainer title="Daily Message Count">
-                <CalHeatMap data={msgCount} />
+                <CalHeatMap data={dailyCount} />
               </ChartContainer>
             }
             <hr />
@@ -157,7 +181,7 @@ const Report = (props: { show: boolean, msgData: MsgData | null, stopWords: Stop
   );
 };
 
-const WordFreqTable = (props: { title: string, wordFreq: WordFreqData; }) => {
+const WordFreqTable = (props: { title: string, wordFreq: WordFreqList; }) => {
   let users = Object.keys(props.wordFreq);
   const Table = (props: { user: string, words: SimpleData[]; }) => {
     return (

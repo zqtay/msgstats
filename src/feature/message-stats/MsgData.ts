@@ -1,5 +1,4 @@
 import MsgEntry from "./MsgEntry";
-import MsgStats from "./MsgStats";
 
 class MsgData {
   private appName: string;
@@ -7,7 +6,6 @@ class MsgData {
   private entryList: MsgEntry[];
   private userList: string[];
   private dateList: string[];
-  public stats: MsgStats;
 
   constructor() {
     this.appName = "";
@@ -15,15 +13,13 @@ class MsgData {
     this.entryList = [];
     this.userList = [];
     this.dateList = [];
-    this.stats = new MsgStats(this);
   }
 
-  public async init(data: string): Promise<void> {
+  public init(data: string): void {
     try {
       this.initData(data);
       this.userList = this.initUserList();
       this.dateList = this.initDateList();
-      this.stats.init();
     }
     catch (e) {
       console.error(e);
@@ -32,7 +28,7 @@ class MsgData {
     }
   }
 
-  private initData(data: string) {
+  private initData(data: string): void {
     let lines = data.split("\n");
     this.appName = lines[0].split("app=")[1];
     this.msgTarget = lines[1].split("msgTarget=")[1];

@@ -50,11 +50,21 @@ function bench(callback: Function, ...args: any[]): any {
   return res;
 }
 
+function genHexString(len: number) {
+  const hex = '0123456789abcdef';
+  let output = '';
+  for (let i = 0; i < len; ++i) {
+      output += hex.charAt(Math.floor(Math.random() * hex.length));
+  }
+  return output;
+}
+
 let m = {
   sortObjectKeys: sortObjectKeys,
   getMedian: getMedian,
   getStandardDeviation: getStandardDeviation,
-  bench: bench
+  bench: bench,
+  genHexString: genHexString
 };
 
 export default m;
