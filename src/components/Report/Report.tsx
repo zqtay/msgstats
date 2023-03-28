@@ -18,7 +18,7 @@ type SimpleData = { [key: string]: number; };
 type MsgStatsData = { [key: string]: { [key: string]: number; }; };
 type HourlyCount = { [key: string]: [number, number][]; };
 
-const Report = (props: { show: boolean, msgStats: MsgStats | null, stopWords: StopWords | null; }) => {
+const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | null, stopWords: StopWords | null; }) => {
 
   const [hourlyCount, setHourlyCount] = useState<HourlyCount | null>(null);
   const [dailyCount, setDailyCount] = useState<DailyCount | null>(null);
@@ -115,7 +115,7 @@ const Report = (props: { show: boolean, msgStats: MsgStats | null, stopWords: St
       };
       const body = JSON.stringify(new MsgStatsStatic(temp));
       const id = Util.genHexString(16);
-      const rawResponse = await fetch(`http://localhost:8000/test/${id}`, {
+      const rawResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL}/test/${id}`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -125,7 +125,7 @@ const Report = (props: { show: boolean, msgStats: MsgStats | null, stopWords: St
       });
       const content = await rawResponse.json();
       console.log(content);
-      console.log(id)
+      console.log(id);
     }
   };
 
@@ -138,12 +138,12 @@ const Report = (props: { show: boolean, msgStats: MsgStats | null, stopWords: St
               {getReportTitle()}
               <div className={styles["date-range"]}>
                 <span>From</span>
-                <DateInput date={dateRange[0]} setDate={(date: string) => setDate(date, "start")} />
+                {props.isStatic ? <span>{dateRange[0]}</span> : <DateInput date={dateRange[0]} setDate={(date: string) => setDate(date, "start")} />}
                 <span>To</span>
-                <DateInput date={dateRange[1]} setDate={(date: string) => setDate(date, "end")} />
+                {props.isStatic ? <span>{dateRange[1]}</span> : <DateInput date={dateRange[1]} setDate={(date: string) => setDate(date, "end")} />}
               </div>
             </div>
-            <Button primary wide onClick={postData}>Share</Button>
+            {!props.isStatic && <Button primary wide onClick={postData}>Share</Button>}
             <hr />
             <div className={styles["msgstats-charts"]}>
               {totalStats &&
