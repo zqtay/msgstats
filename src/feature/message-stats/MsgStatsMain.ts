@@ -246,6 +246,10 @@ class MsgStatsMain extends MsgStats {
 
     return tokens;
   }
+
+  public isSample(): boolean {
+    return (this.msgData.getAppName() === "Sample");
+  }
 }
 
 export default MsgStatsMain;

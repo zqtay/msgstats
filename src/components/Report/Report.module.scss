@@ -21,19 +21,23 @@
   flex-direction: column;
   gap: 5px;
   text-align: center;
-  position: sticky;
-  top: 50px;
-  margin-top: -10px;
-  padding: 10px 0 5px 0;
-  color: #00000080;
-  background-color: #FFFFFFE0;
+  color: black;
+  background-color: white;
   font-size: 20px;
   @include transition-default(all);
 
-  &:hover,
-  &:focus {
-    color: black;
-    background-color: white;
+  &.minimized {
+    position: sticky;
+    top: 50px;
+    padding: 10px 0 5px 0;
+    color: #00000080;
+    background-color: #FFFFFFE0;
+    font-size: 15px;
+    &:hover,
+    &:focus {
+      color: black;
+      background-color: white;
+    }
   }
 }
 
@@ -71,7 +75,9 @@
 
 .wordfreq-tables {
   display: flex;
-  flex-flow: row wrap;
+  flex-direction: row;
+  gap: 20px;
+  overflow-x: auto;
 }
 
 .wordfreq-table {

@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 
 import MsgStats, { DailyCount, WordFreqList } from "../../feature/message-stats/MsgStats";
 import MsgStatsStatic, { MsgStatsObject } from "../../feature/message-stats/MsgStatsStatic";
@@ -25,6 +25,9 @@ const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | 
   const [totalStats, setTotalStats] = useState<MsgStatsData | null>(null);
   const [wordFreq, setWordFreq] = useState<WordFreqList | null>(null);
   const [dateRange, setDateRange] = useState<string[]>(["", ""]);
+  const [minTitle, setMinTitle] = useState<boolean>(false);
+
+  const titleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (props.show && props.msgStats) {
@@ -35,6 +38,23 @@ const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | 
       setDateRange(props.msgStats.getDateRange());
     }
   }, [props.show, props.msgStats, props.stopWords]);
+
+  const handleScroll = () => {
+    if (titleRef.current) {
+      const rect = titleRef.current.getBoundingClientRect();
+      if (!minTitle) {
+        if (rect.top <= 50) setMinTitle(true);
+      }
+      else {
+        if (rect.top > 50) setMinTitle(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('scroll', handleScroll);
+    return () => document.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
 
   const getMostUsedWords = () => {
     if (props.msgStats) {
@@ -99,7 +119,14 @@ const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | 
 
   const getReportTitle = () => {
     if (props.msgStats) {
-      return props.msgStats.getReportTitle();
+      let title = props.msgStats.getReportTitle();
+      if (minTitle) {
+        // Only show users/group name
+        // title = "A & B App Message Statistics"
+        let title1 = title.split(" ");
+        title = title1.slice(0, (title1.length - 3)).join(" ");
+      }
+      return title;
     }
   };
 
@@ -134,16 +161,16 @@ const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | 
       {props.show &&
         <section id="report" className={styles["report-section"]}>
           <Container className={styles["report-container"]}>
-            <div className={styles["report-title"]}>
+            <div ref={titleRef} className={`${styles["report-title"]} ${minTitle ? styles["minimized"] : null}`}>
               {getReportTitle()}
               <div className={styles["date-range"]}>
-                <span>From</span>
+                {!minTitle && <span>From</span>}
                 {props.isStatic ? <span>{dateRange[0]}</span> : <DateInput date={dateRange[0]} setDate={(date: string) => setDate(date, "start")} />}
-                <span>To</span>
+                {!minTitle && <span>To</span>}
                 {props.isStatic ? <span>{dateRange[1]}</span> : <DateInput date={dateRange[1]} setDate={(date: string) => setDate(date, "end")} />}
               </div>
             </div>
-            {!props.isStatic && <Button primary wide onClick={postData}>Share</Button>}
+            {(!props.isStatic && !props.msgStats?.isSample()) && <Button primary wide onClick={postData}>Share</Button>}
             <hr />
             <div className={styles["msgstats-charts"]}>
               {totalStats &&

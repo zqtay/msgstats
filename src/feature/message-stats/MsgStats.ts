@@ -48,6 +48,8 @@ abstract class MsgStats {
   public abstract getTotalCountStats(): TotalCountStats;
 
   public abstract getReportTitle(): string;
+
+  public abstract isSample(): boolean;
 }
 
 export default MsgStats;

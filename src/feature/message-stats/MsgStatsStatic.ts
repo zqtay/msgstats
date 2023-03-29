@@ -62,6 +62,10 @@ class MsgStatsStatic extends MsgStats {
   public getReportTitle(): string {
     return this.reportTitle;
   }
+
+  public isSample(): boolean {
+    return false;
+  }
 }
 
 export default MsgStatsStatic;
