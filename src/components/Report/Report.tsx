@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useReducer, useRef } from 'react';
 
 import MsgStats, { DailyCount, WordFreqList } from "../../feature/message-stats/MsgStats";
 import MsgStatsStatic, { MsgStatsObject } from "../../feature/message-stats/MsgStatsStatic";
@@ -17,16 +17,63 @@ import styles from "./Report.module.scss";
 type SimpleData = { [key: string]: number; };
 type MsgStatsData = { [key: string]: { [key: string]: number; }; };
 type HourlyCount = { [key: string]: [number, number][]; };
+enum ActionType {
+  HOURLY_COUNT = 1,
+  DAILY_COUNT,
+  TOTAL_STATS,
+  WORD_FREQ,
+  DATE_RANGE,
+  MIN_TITLE,
+  SHARE_LINK,
+};
+interface ReportState {
+  hourlyCount: HourlyCount | null;
+  dailyCount: DailyCount | null;
+  totalStats: MsgStatsData | null;
+  wordFreq: WordFreqList | null;
+  dateRange: string[];
+  minTitle: boolean;
+  shareLink: string | null;
+};
+interface ReportAction {
+  type: ActionType;
+  data: any;
+};
+
+const initialState: ReportState = {
+  hourlyCount: null,
+  dailyCount: null,
+  totalStats: null,
+  wordFreq: null,
+  dateRange: ["", ""],
+  minTitle: false,
+  shareLink: null,
+};
 
 const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | null, stopWords: StopWords | null; }) => {
-
-  const [hourlyCount, setHourlyCount] = useState<HourlyCount | null>(null);
-  const [dailyCount, setDailyCount] = useState<DailyCount | null>(null);
-  const [totalStats, setTotalStats] = useState<MsgStatsData | null>(null);
-  const [wordFreq, setWordFreq] = useState<WordFreqList | null>(null);
-  const [dateRange, setDateRange] = useState<string[]>(["", ""]);
-  const [minTitle, setMinTitle] = useState<boolean>(false);
-
+  const reducer = (state: ReportState, action: ReportAction): ReportState => {
+    let { type, data } = action;
+    switch (type) {
+      case ActionType.HOURLY_COUNT:
+        return { ...state, hourlyCount: (data as HourlyCount) };
+      case ActionType.DAILY_COUNT:
+        return { ...state, dailyCount: (data as DailyCount) };
+      case ActionType.TOTAL_STATS:
+        return { ...state, totalStats: (data as MsgStatsData) };
+      case ActionType.WORD_FREQ:
+        return { ...state, wordFreq: (data as WordFreqList) };
+      case ActionType.DATE_RANGE:
+        return { ...state, dateRange: (data as string[]) };
+      case ActionType.MIN_TITLE:
+        return { ...state, minTitle: (data as boolean) };
+      case ActionType.SHARE_LINK:
+        return { ...state, shareLink: (data as string) };
+      default:
+        return state;
+    }
+  };
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const { hourlyCount, dailyCount, totalStats, wordFreq, dateRange, minTitle, shareLink } = state;
   const titleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,7 +82,8 @@ const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | 
       getDailyCount();
       getTotalCountStats();
       getHourlyMsg();
-      setDateRange(props.msgStats.getDateRange());
+      dispatch({ type: ActionType.DATE_RANGE, data: props.msgStats.getDateRange() });
+      dispatch({ type: ActionType.SHARE_LINK, data: null });
     }
   }, [props.show, props.msgStats, props.stopWords]);
 
@@ -43,10 +91,10 @@ const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | 
     if (titleRef.current) {
       const rect = titleRef.current.getBoundingClientRect();
       if (!minTitle) {
-        if (rect.top <= 50) setMinTitle(true);
+        if (rect.top <= 50) dispatch({ type: ActionType.MIN_TITLE, data: true });
       }
       else {
-        if (rect.top > 50) setMinTitle(false);
+        if (rect.top > 50) dispatch({ type: ActionType.MIN_TITLE, data: false });
       }
     }
   };
@@ -59,14 +107,14 @@ const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | 
   const getMostUsedWords = () => {
     if (props.msgStats) {
       let wordFreq1 = props.msgStats.getMostUsedWords(100, props.stopWords?.check.bind(props.stopWords));
-      setWordFreq(wordFreq1);
+      dispatch({ type: ActionType.WORD_FREQ, data: wordFreq1 });
     }
   };
 
   const getDailyCount = () => {
     if (props.msgStats) {
       let msgCount1 = props.msgStats.getDailyMsgCount();
-      setDailyCount(msgCount1);
+      dispatch({ type: ActionType.DAILY_COUNT, data: msgCount1 });
     }
   };
 
@@ -79,9 +127,14 @@ const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | 
       Object.keys(stats).forEach(name => totMsgCount[name] = stats[name]["totMsgCount"]);
       Object.keys(stats).forEach(name => totCharCount[name] = stats[name]["totCharCount"]);
       Object.keys(stats).forEach(name => avgCharCountPerMsg[name] = stats[name]["avgCharCountPerMsg"]);
-      setTotalStats(prev => ({ ...prev, totMsgCount: totMsgCount }));
-      setTotalStats(prev => ({ ...prev, totCharCount: totCharCount }));
-      setTotalStats(prev => ({ ...prev, avgCharCountPerMsg: avgCharCountPerMsg }));
+      dispatch({
+        type: ActionType.TOTAL_STATS,
+        data: {
+          totMsgCount: totMsgCount,
+          totCharCount: totCharCount,
+          avgCharCountPerMsg: avgCharCountPerMsg
+        }
+      });
     }
   };
 
@@ -92,7 +145,7 @@ const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | 
       Object.entries(stats).forEach(e => {
         formattedData[e[0]] = e[1].map((y, x) => [x, y]);
       });
-      setHourlyCount(formattedData);
+      dispatch({ type: ActionType.HOURLY_COUNT, data: formattedData });
     }
   };
 
@@ -108,7 +161,7 @@ const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | 
         newDateRange[1] = date;
         props.msgStats.setDateRange(undefined, date);
       }
-      setDateRange(newDateRange);
+      dispatch({ type: ActionType.DATE_RANGE, data: newDateRange });
       // Re-render report data
       getMostUsedWords();
       getDailyCount();
