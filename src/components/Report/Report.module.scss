@@ -87,3 +87,14 @@
     font-weight: bold;
   }
 }
+
+.share {
+  text-align: center;
+
+  a {
+    @include link-highlight;
+    text-decoration: none;
+    font-weight: bolder;
+    text-decoration: underline;
+  }
+}

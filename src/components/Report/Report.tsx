@@ -13,6 +13,7 @@ import Container from "../UI/Container/Container";
 import DateInput from "../UI/DateInput/DateInput";
 
 import styles from "./Report.module.scss";
+import Spinner from "../UI/Spinner/Spinner";
 
 type SimpleData = { [key: string]: number; };
 type MsgStatsData = { [key: string]: { [key: string]: number; }; };
@@ -25,6 +26,7 @@ enum ActionType {
   DATE_RANGE,
   MIN_TITLE,
   SHARE_LINK,
+  SHARE_PROGRESS
 };
 interface ReportState {
   hourlyCount: HourlyCount | null;
@@ -34,6 +36,7 @@ interface ReportState {
   dateRange: string[];
   minTitle: boolean;
   shareLink: string | null;
+  shareProgress: boolean;
 };
 interface ReportAction {
   type: ActionType;
@@ -48,6 +51,7 @@ const initialState: ReportState = {
   dateRange: ["", ""],
   minTitle: false,
   shareLink: null,
+  shareProgress: false
 };
 
 const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | null, stopWords: StopWords | null; }) => {
@@ -68,12 +72,14 @@ const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | 
         return { ...state, minTitle: (data as boolean) };
       case ActionType.SHARE_LINK:
         return { ...state, shareLink: (data as string) };
+      case ActionType.SHARE_PROGRESS:
+        return { ...state, shareProgress: (data as boolean) };
       default:
         return state;
     }
   };
   const [state, dispatch] = useReducer(reducer, initialState);
-  const { hourlyCount, dailyCount, totalStats, wordFreq, dateRange, minTitle, shareLink } = state;
+  const { hourlyCount, dailyCount, totalStats, wordFreq, dateRange, minTitle, shareLink, shareProgress } = state;
   const titleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -84,6 +90,7 @@ const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | 
       getHourlyMsg();
       dispatch({ type: ActionType.DATE_RANGE, data: props.msgStats.getDateRange() });
       dispatch({ type: ActionType.SHARE_LINK, data: null });
+      dispatch({ type: ActionType.SHARE_PROGRESS, data: false });
     }
   }, [props.show, props.msgStats, props.stopWords]);
 
@@ -185,6 +192,7 @@ const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | 
 
   const postData = async () => {
     if (props.msgStats && dailyCount && wordFreq && totalStats) {
+      dispatch({ type: ActionType.SHARE_PROGRESS, data: true });
       const temp: MsgStatsObject = {
         hourlyCount: props.msgStats.getHourlyMsgCount(),
         dailyCount: dailyCount,
@@ -204,9 +212,11 @@ const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | 
         body: body
       });
       const content = await rawResponse.json();
-      console.log(content);
-      console.log(id);
+      if (content && content.insertedId) {
+        dispatch({ type: ActionType.SHARE_LINK, data: `${window.location.host}${process.env.PUBLIC_URL}/#/?reportId=${id}` });
+      }
     }
+    dispatch({ type: ActionType.SHARE_PROGRESS, data: false });
   };
 
   return (
@@ -223,7 +233,6 @@ const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | 
                 {props.isStatic ? <span>{dateRange[1]}</span> : <DateInput date={dateRange[1]} setDate={(date: string) => setDate(date, "end")} />}
               </div>
             </div>
-            {(!props.isStatic && !props.msgStats?.isSample()) && <Button primary wide onClick={postData}>Share</Button>}
             <hr />
             <div className={styles["msgstats-charts"]}>
               {totalStats &&
@@ -254,6 +263,21 @@ const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | 
             }
             <hr />
             {wordFreq && <WordFreqTable title="Most Used Words" wordFreq={wordFreq} />}
+            {(!props.isStatic && !props.msgStats?.isSample()) &&
+              <>
+                <hr />
+                <ChartContainer title="Share Report">
+                  {!shareLink && <Button primary wide onClick={postData} disabled={shareProgress}>Create Link</Button>}
+                  <Spinner displayNone={!shareProgress} />
+                  {shareLink &&
+                    <div className={styles["share"]}>
+                      <p>Your report can now be shared with this link:</p>
+                      <a href={shareLink}>{shareLink}</a>
+                    </div>
+                  }
+                </ChartContainer>
+              </>
+            }
           </Container>
         </section>
       }
