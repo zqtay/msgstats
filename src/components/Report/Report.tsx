@@ -213,7 +213,7 @@ const Report = (props: { show: boolean, isStatic: boolean, msgStats: MsgStats | 
       });
       const content = await rawResponse.json();
       if (content && content.insertedId) {
-        dispatch({ type: ActionType.SHARE_LINK, data: `${window.location.host}${process.env.PUBLIC_URL}/#/?reportId=${id}` });
+        dispatch({ type: ActionType.SHARE_LINK, data: `https://${window.location.host}${process.env.PUBLIC_URL}/#/?reportId=${id}` });
       }
     }
     dispatch({ type: ActionType.SHARE_PROGRESS, data: false });
